@@ -1,0 +1,102 @@
+import 'package:app_links/app_links.dart';
+import 'package:get/get.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:snaplink/views/screens/auth/reset_password.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class AuthService {
+  final SupabaseClient _supabase = Supabase.instance.client;
+
+  Future<void> signInWithEmail(String email, String password) async {
+    final response = await _supabase.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
+    if (response.user == null) {
+      throw Exception('Login failed. Please check your credentials.');
+    }
+  }
+
+  Future<void> signUpWithEmail(String email, String password) async {
+    final response = await _supabase.auth.signUp(
+      email: email,
+      password: password,
+    );
+  }
+
+  Future<void> signOut() async {
+    await _supabase.auth.signOut();
+  }
+
+  String? getCurrentUserEmail() {
+    final session = _supabase.auth.currentSession;
+    final user = session?.user;
+    return user?.email;
+  }
+
+  Future<void> requestresetPassword(String email) async {
+    try {
+      await _supabase.auth.resetPasswordForEmail(
+        email,
+        redirectTo: 'snaplink://reset-password',
+      );
+    } catch (e) {
+      throw Exception('Failed to send reset password email: ${e.toString()}');
+    }
+  }
+
+  Future<void> configDeeplink() async {
+    final appLinks = AppLinks();
+
+    // First check if app was opened with a link already (cold start)
+    final Uri? initialUri = await appLinks.getInitialLink();
+    if (initialUri != null && initialUri.host == 'reset-password') {
+      Get.to(() => const ResetPasswordScreen());
+    }
+
+    // Then listen for new links if app is already open
+    appLinks.uriLinkStream.listen((uri) {
+      if (uri.host == 'reset-password') {
+        Get.to(() => const ResetPasswordScreen());
+      }
+    });
+  }
+
+  Future<void> resetPassword(String NewPassword) async {
+    try {
+      await _supabase.auth.updateUser(UserAttributes(password: NewPassword));
+    } catch (e) {
+      throw Exception('Failed to reset password : ${e.toString()}');
+    }
+  }
+
+  Future<AuthResponse> googleSignIn() async {
+    const webClientId =
+        '696549028830-molb7e2f81g4c0k4a63jdop5tp58g738.apps.googleusercontent.com';
+
+    const iosClientId =
+        '696549028830-t4qsq1qr66ms38b0oq5ife7l44epbsdr.apps.googleusercontent.com';
+
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      clientId: iosClientId,
+      serverClientId: webClientId,
+    );
+    final googleUser = await googleSignIn.signIn();
+    final googleAuth = await googleUser!.authentication;
+    final accessToken = googleAuth.accessToken;
+    final idToken = googleAuth.idToken;
+
+    if (accessToken == null) {
+      throw 'No Access Token found.';
+    }
+    if (idToken == null) {
+      throw 'No ID Token found.';
+    }
+
+    return _supabase.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+      accessToken: accessToken,
+    );
+  }
+}
