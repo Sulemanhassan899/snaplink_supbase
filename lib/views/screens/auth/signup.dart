@@ -37,6 +37,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final authService = AuthService();
+  bool _isPasswordObscured = true; // Toggle for password visibility
+  bool _isConfrimPasswordObscured = true; // Toggle for password visibility
 
   void signup() async {
     final email = _emailController.text.trim();
@@ -174,6 +176,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             hint: "Password",
                             marginBottom: 12,
                             controller: _passwordController,
+                            isObSecure:
+                                _isPasswordObscured, // Toggle visibility
+                            suffix: Bounce(
+                              onTap: () {
+                                setState(() {
+                                  _isPasswordObscured =
+                                      !_isPasswordObscured; // Toggle password visibility
+                                });
+                              },
+                              child: CommonImageView(
+                                imagePath:
+                                    _isPasswordObscured
+                                        ? Assets.imagesHide
+                                        : Assets.imagesUnhide, // Change icon
+                                height: 18,
+                              ),
+                            ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter the password';
@@ -186,6 +205,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           MyTextField(
                             controller: _confirmPasswordController,
                             hint: "Confirm Password",
+                            isObSecure:
+                                _isConfrimPasswordObscured, // Toggle visibility
+                            suffix: Bounce(
+                              onTap: () {
+                                setState(() {
+                                  _isConfrimPasswordObscured =
+                                      !_isConfrimPasswordObscured; // Toggle password visibility
+                                });
+                              },
+                              child: CommonImageView(
+                                imagePath:
+                                    _isConfrimPasswordObscured
+                                        ? Assets.imagesHide
+                                        : Assets.imagesUnhide, // Change icon
+                                height: 18,
+                              ),
+                            ),
                             marginBottom: 12,
                             validator: (value) {
                               if (value == null || value.isEmpty) {

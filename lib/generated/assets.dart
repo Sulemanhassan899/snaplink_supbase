@@ -2,6 +2,14 @@
 class Assets {
   Assets._();
   
+  /// Assets for animationsConfetti
+  /// assets/animations/confetti.json
+  static const String animationsConfetti = "assets/animations/confetti.json";
+
+  /// Assets for animationsUploading
+  /// assets/animations/uploading.json
+  static const String animationsUploading = "assets/animations/uploading.json";
+
   /// Assets for fontsNunitoBlack
   /// assets/fonts/Nunito-Black.ttf
   static const String fontsNunitoBlack = "assets/fonts/Nunito-Black.ttf";
@@ -70,10 +78,6 @@ class Assets {
   /// assets/images/arrow_right_white.png
   static const String imagesArrowRightWhite = "assets/images/arrow_right_white.png";
 
-  /// Assets for imagesAuthbackground
-  /// assets/images/authbackground.png
-  static const String imagesAuthbackground = "assets/images/authbackground.png";
-
   /// Assets for imagesBackWhite
   /// assets/images/back_white.png
   static const String imagesBackWhite = "assets/images/back_white.png";
@@ -81,10 +85,6 @@ class Assets {
   /// Assets for imagesBackground
   /// assets/images/background.png
   static const String imagesBackground = "assets/images/background.png";
-
-  /// Assets for imagesBackgroundBlackgradient
-  /// assets/images/background_blackgradient.png
-  static const String imagesBackgroundBlackgradient = "assets/images/background_blackgradient.png";
 
   /// Assets for imagesBellWhite
   /// assets/images/bell_white.png
@@ -102,9 +102,21 @@ class Assets {
   /// assets/images/checkemail.png
   static const String imagesCheckemail = "assets/images/checkemail.png";
 
+  /// Assets for imagesCloudUplaoding
+  /// assets/images/cloud_uplaoding.png
+  static const String imagesCloudUplaoding = "assets/images/cloud_uplaoding.png";
+
   /// Assets for imagesContianerWhite1
   /// assets/images/contianer_white_1.png
   static const String imagesContianerWhite1 = "assets/images/contianer_white_1.png";
+
+  /// Assets for imagesCopy
+  /// assets/images/copy.png
+  static const String imagesCopy = "assets/images/copy.png";
+
+  /// Assets for imagesCopyBlack
+  /// assets/images/copy_black.png
+  static const String imagesCopyBlack = "assets/images/copy_black.png";
 
   /// Assets for imagesCopyIconBlack
   /// assets/images/copy_icon_black.png
@@ -121,6 +133,10 @@ class Assets {
   /// Assets for imagesHide
   /// assets/images/hide.png
   static const String imagesHide = "assets/images/hide.png";
+
+  /// Assets for imagesHomeMainUpload
+  /// assets/images/home_main_upload.png
+  static const String imagesHomeMainUpload = "assets/images/home_main_upload.png";
 
   /// Assets for imagesLacunherIcon
   /// assets/images/lacunher_icon.png
@@ -197,6 +213,10 @@ class Assets {
   /// Assets for imagesTrash
   /// assets/images/trash.png
   static const String imagesTrash = "assets/images/trash.png";
+
+  /// Assets for imagesTrashRed
+  /// assets/images/trash_red.png
+  static const String imagesTrashRed = "assets/images/trash_red.png";
 
   /// Assets for imagesUnhide
   /// assets/images/unhide.png

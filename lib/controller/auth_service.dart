@@ -1,11 +1,49 @@
+
+
+
 import 'package:app_links/app_links.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:snaplink/views/screens/auth/reset_password.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:permission_handler/permission_handler.dart'; // <--- ADD THIS
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
+  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+
+  AuthService() {
+    _initNotifications();
+    _requestNotificationPermission();
+  }
+
+  void _initNotifications() {
+    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings();
+    const InitializationSettings initSettings = InitializationSettings(android: androidSettings, iOS: iosSettings);
+    _notificationsPlugin.initialize(initSettings);
+  }
+
+  Future<void> _requestNotificationPermission() async {
+    if (await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
+  }
+
+  Future<void> _showNotification(String title, String body,) async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'reset_password_channel',
+      'Password Reset',
+      channelDescription: 'Channel for password reset notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
+
+    await _notificationsPlugin.show(0, title, body, notificationDetails, );
+  }
 
   Future<void> signInWithEmail(String email, String password) async {
     final response = await _supabase.auth.signInWithPassword(
@@ -40,6 +78,7 @@ class AuthService {
         email,
         redirectTo: 'snaplink://reset-password',
       );
+      await _showNotification('Password Reset', 'Password reset link sent to your email.');
     } catch (e) {
       throw Exception('Failed to send reset password email: ${e.toString()}');
     }
@@ -48,13 +87,11 @@ class AuthService {
   Future<void> configDeeplink() async {
     final appLinks = AppLinks();
 
-    // First check if app was opened with a link already (cold start)
     final Uri? initialUri = await appLinks.getInitialLink();
     if (initialUri != null && initialUri.host == 'reset-password') {
       Get.to(() => const ResetPasswordScreen());
     }
 
-    // Then listen for new links if app is already open
     appLinks.uriLinkStream.listen((uri) {
       if (uri.host == 'reset-password') {
         Get.to(() => const ResetPasswordScreen());

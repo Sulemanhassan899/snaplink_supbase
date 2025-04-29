@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'package:bounce/bounce.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
@@ -36,6 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _emailError;
   String? _passwordError;
   final authService = AuthService();
+  bool _isPasswordObscured = true; // Toggle for password visibility
 
   void login() async {
     setState(() {
@@ -150,6 +152,23 @@ class _LoginScreenState extends State<LoginScreen> {
                             marginBottom: 12,
                             controller: _passwordController,
                             focusNode: _focusNodePassword,
+                            isObSecure:
+                                _isPasswordObscured, // Toggle visibility
+                            suffix: Bounce(
+                              onTap: () {
+                                setState(() {
+                                  _isPasswordObscured =
+                                      !_isPasswordObscured; // Toggle password visibility
+                                });
+                              },
+                              child: CommonImageView(
+                                imagePath:
+                                    _isPasswordObscured
+                                        ? Assets.imagesHide
+                                        : Assets.imagesUnhide, // Change icon
+                                height: 18,
+                              ),
+                            ),
                             validator: (value) {
                               final basicValidation = validators
                                   .passwordValidator(value);

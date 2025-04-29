@@ -8,11 +8,15 @@ plugins {
 android {
     namespace = "com.example.snaplink"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        // ADD this line
+        // coreLibraryDesugaringEnabled = true
+        isCoreLibraryDesugaringEnabled = true // <-- NOTE: `isCoreLibraryDesugaringEnabled`
+
     }
 
     kotlinOptions {
@@ -28,7 +32,6 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        ndkVersion = "27.0.12077973"
     }
 
     buildTypes {
@@ -42,4 +45,11 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // your other dependencies
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+
+    // coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4';  // or latest
 }

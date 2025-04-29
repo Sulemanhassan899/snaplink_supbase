@@ -33,41 +33,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _authService = AuthService();
   final _formKey = GlobalKey<FormState>();
   final authService = AuthService();
-
-  void newpassword2() async {
-    final password = _passwordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
-
-    if (password.isEmpty || confirmPassword.isEmpty) {
-      setState(() {});
-      _formKey.currentState?.validate();
-      return;
-    }
-
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) return;
-
-    if (password != confirmPassword) {
-      setState(() {});
-      _formKey.currentState?.validate();
-      return;
-    }
-
-    try {
-      if (password == confirmPassword) {
-        await _authService.resetPassword(password);
-        if (mounted) {
-          print('New password is: $password');
-          DialogHelper.RestPasswordDialog(context);
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {});
-        _formKey.currentState?.validate();
-      }
-    }
-  }
+  bool _isPasswordObscured = true; // Toggle for password visibility
+  bool _isConfrimPasswordObscured = true; // Toggle for password visibility
 
   void newpassword() async {
     final password = _passwordController.text.trim();
@@ -183,6 +150,23 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             hint: "Password",
                             marginBottom: 12,
                             controller: _passwordController,
+                            isObSecure:
+                                _isPasswordObscured, // Toggle visibility
+                            suffix: Bounce(
+                              onTap: () {
+                                setState(() {
+                                  _isPasswordObscured =
+                                      !_isPasswordObscured; // Toggle password visibility
+                                });
+                              },
+                              child: CommonImageView(
+                                imagePath:
+                                    _isPasswordObscured
+                                        ? Assets.imagesHide
+                                        : Assets.imagesUnhide, // Change icon
+                                height: 18,
+                              ),
+                            ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter the password';
@@ -196,6 +180,23 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             controller: _confirmPasswordController,
                             hint: "Confirm Password",
                             marginBottom: 12,
+                            isObSecure:
+                                _isConfrimPasswordObscured, // Toggle visibility
+                            suffix: Bounce(
+                              onTap: () {
+                                setState(() {
+                                  _isConfrimPasswordObscured =
+                                      !_isConfrimPasswordObscured; // Toggle password visibility
+                                });
+                              },
+                              child: CommonImageView(
+                                imagePath:
+                                    _isConfrimPasswordObscured
+                                        ? Assets.imagesHide
+                                        : Assets.imagesUnhide, // Change icon
+                                height: 18,
+                              ),
+                            ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Confirm Password cannot be empty';
