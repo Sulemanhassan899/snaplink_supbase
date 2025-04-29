@@ -1,6 +1,3 @@
-
-
-
 import 'package:app_links/app_links.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
@@ -11,17 +8,25 @@ import 'package:permission_handler/permission_handler.dart'; // <--- ADD THIS
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
-  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   AuthService() {
     _initNotifications();
     _requestNotificationPermission();
   }
 
+  //Notifications functions
+
   void _initNotifications() {
-    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings();
-    const InitializationSettings initSettings = InitializationSettings(android: androidSettings, iOS: iosSettings);
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings();
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
     _notificationsPlugin.initialize(initSettings);
   }
 
@@ -31,19 +36,24 @@ class AuthService {
     }
   }
 
-  Future<void> _showNotification(String title, String body,) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'reset_password_channel',
-      'Password Reset',
-      channelDescription: 'Channel for password reset notifications',
-      importance: Importance.max,
-      priority: Priority.high,
+  Future<void> _showNotification(String title, String body) async {
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'reset_password_channel',
+          'Password Reset',
+          channelDescription: 'Channel for password reset notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+        );
+
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
     );
 
-    const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
-
-    await _notificationsPlugin.show(0, title, body, notificationDetails, );
+    await _notificationsPlugin.show(0, title, body, notificationDetails);
   }
+
+  //supabase functions
 
   Future<void> signInWithEmail(String email, String password) async {
     final response = await _supabase.auth.signInWithPassword(
@@ -55,10 +65,26 @@ class AuthService {
     }
   }
 
-  Future<void> signUpWithEmail(String email, String password) async {
+  Future<void> signUpWithEmail2(String email, String password) async {
     final response = await _supabase.auth.signUp(
       email: email,
       password: password,
+    );
+  }
+
+  Future<User?> signUpWithEmail(String email, String password) async {
+    final response = await _supabase.auth.signUp(
+      email: email,
+      password: password,
+    );
+    return response.user;
+  }
+
+  Future<void> updateUserName(String name) async {
+    await _supabase.auth.updateUser(
+      UserAttributes(
+        data: {'full_name': name}, 
+      ),
     );
   }
 
@@ -78,7 +104,10 @@ class AuthService {
         email,
         redirectTo: 'snaplink://reset-password',
       );
-      await _showNotification('Password Reset', 'Password reset link sent to your email.');
+      await _showNotification(
+        'Password Reset',
+        'Password reset link sent to your email.',
+      );
     } catch (e) {
       throw Exception('Failed to send reset password email: ${e.toString()}');
     }
@@ -136,4 +165,23 @@ class AuthService {
       accessToken: accessToken,
     );
   }
+
+  //list  functions
+
+  //uplaoding functions
+
+  //image compressing functions
+
+  //image compressing functions
 }
+
+
+
+
+
+    // MyText(
+    //                 text: getCurrentUserEmail.toString(),
+    //                 size: 14,
+    //                 textAlign: TextAlign.center,
+    //                 weight: FontWeight.w400,
+    //               ),

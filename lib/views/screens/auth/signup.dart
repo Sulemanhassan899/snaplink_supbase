@@ -28,19 +28,23 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final FocusNode _focusNodeEmail = FocusNode();
+  final FocusNode _focusNodeFullName = FocusNode();
   final FocusNode _focusNodePassword = FocusNode();
   final FocusNode _focusNodeConfrimPassword = FocusNode();
+  final FocusNode _focusNodePhone = FocusNode();
+  final _phoneController = TextEditingController();
   final validators = AuthValidations();
   final _authService = AuthService();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _fullnameController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final authService = AuthService();
-  bool _isPasswordObscured = true; // Toggle for password visibility
-  bool _isConfrimPasswordObscured = true; // Toggle for password visibility
+  bool _isPasswordObscured = true;
+  bool _isConfrimPasswordObscured = true;
 
-  void signup() async {
+  void signup2() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
@@ -85,12 +89,65 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
+  void signup() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+    final fullName = _fullnameController.text.trim();
+
+    if (email.isEmpty && password.isEmpty && confirmPassword.isEmpty) {
+      setState(() {});
+      _formKey.currentState?.validate();
+      return;
+    } else if (email.isEmpty) {
+      setState(() {});
+      _formKey.currentState?.validate();
+      return;
+    } else if (password.isEmpty) {
+      setState(() {});
+      _formKey.currentState?.validate();
+      return;
+    } else if (confirmPassword.isEmpty) {
+      setState(() {});
+      _formKey.currentState?.validate();
+      return;
+    }
+
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) return;
+
+    if (password != confirmPassword) {
+      setState(() {});
+      _formKey.currentState?.validate();
+      return;
+    }
+
+    try {
+      final user = await _authService.signUpWithEmail(email, password);
+      if (user != null) {
+        await _authService.updateUserName(fullName);
+      }
+      if (mounted) {
+        Get.offAll(() => HomeScreen());
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {});
+        _formKey.currentState?.validate();
+      }
+    }
+  }
+
   @override
   void dispose() {
     _focusNodeEmail.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _focusNodePhone.dispose();
+    _phoneController.dispose();
+    _focusNodeFullName.dispose();
+    _fullnameController.dispose();
     super.dispose();
   }
 
@@ -159,6 +216,40 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             weight: FontWeight.w400,
                           ),
                           SizedBox(height: 16),
+                          MyTextField(
+                            hint: "Full Name",
+                            marginBottom: 12,
+                            controller: _fullnameController,
+                            focusNode: _focusNodeFullName,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your full name';
+                              }
+                              if (!RegExp(r"^[a-zA-Z\s]+$").hasMatch(value)) {
+                                return 'Name must not contain special characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          MyTextField(
+                            hint: "Phone Number",
+                            marginBottom: 12,
+                            controller: _phoneController,
+                            focusNode: _focusNodePhone,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your phone number';
+                              }
+                              if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                                return 'Phone number must contain only digits';
+                              }
+                              return null;
+                            },
+                            keyboardType:
+                                TextInputType
+                                    .number, // 👈 Keyboard will only show numbers
+                          ),
+
                           MyTextField(
                             hint: "Email",
                             marginBottom: 12,

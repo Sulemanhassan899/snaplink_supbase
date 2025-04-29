@@ -102,12 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     weight: FontWeight.w400,
                   ),
                   MyGradientButton(onTap: () {}, buttonText: "Upload Image"),
-                  MyText(
-                    text: getCurrentUserEmail.toString(),
-                    size: 14,
-                    textAlign: TextAlign.center,
-                    weight: FontWeight.w400,
-                  ),
+              
                 ],
               ),
             ),
