@@ -10,6 +10,10 @@ const kSecondaryColor = Color(0xFF3B2F39);
 const kTertiaryColor = Color(0xFF607EFF);
 const kOverlay = Color(0xFF141414);
 
+const LightBlue = Color(0xFFE6F2FF);
+const Lightyellow = Color(0xFFFFFBE6); 
+const LightGreen = Color(0xFFE6FFE6);
+
 //! All Text Colors
 const kSubText = Color(0xFF888888);
 const kSubText2 = Color(0xFF3B3B3B);

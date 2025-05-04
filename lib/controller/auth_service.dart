@@ -116,7 +116,7 @@ class AuthService {
   Future<void> configDeeplink() async {
     final appLinks = AppLinks();
 
-    final Uri? initialUri = await appLinks.getInitialLink();
+    final Uri? initialUri = await appLinks.getInitialAppLink();
     if (initialUri != null && initialUri.host == 'reset-password') {
       Get.to(() => const ResetPasswordScreen());
     }

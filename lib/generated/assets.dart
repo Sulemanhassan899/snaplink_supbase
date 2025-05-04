@@ -94,6 +94,10 @@ class Assets {
   /// assets/images/Buttonbg2.png
   static const String imagesButtonbg2 = "assets/images/Buttonbg2.png";
 
+  /// Assets for imagesCameraGrad
+  /// assets/images/camera_grad.png
+  static const String imagesCameraGrad = "assets/images/camera_grad.png";
+
   /// Assets for imagesCancel
   /// assets/images/cancel.png
   static const String imagesCancel = "assets/images/cancel.png";
@@ -125,6 +129,10 @@ class Assets {
   /// Assets for imagesCopyhttpIcon
   /// assets/images/copyhttp_icon.png
   static const String imagesCopyhttpIcon = "assets/images/copyhttp_icon.png";
+
+  /// Assets for imagesGalleryGrad
+  /// assets/images/gallery_grad.png
+  static const String imagesGalleryGrad = "assets/images/gallery_grad.png";
 
   /// Assets for imagesGoogle
   /// assets/images/google.png

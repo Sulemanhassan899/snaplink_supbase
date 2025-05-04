@@ -28,7 +28,6 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.transparent,
       ),
       debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.dark,
       initialRoute: AppLinks.splash_screen,
       getPages: AppRoutes.pages,
       home: AuthGate(),

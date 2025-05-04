@@ -25,6 +25,9 @@ analyzer:
     sort_child_properties_last: ignore
     depend_on_referenced_packages: ignore
     file_names: ignore
+    prefer_const_literals_to_create_immutables: ignore
+    prefer_interpolation_to_compose_strings: ignore
+    unnecessary_string_interpolations: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

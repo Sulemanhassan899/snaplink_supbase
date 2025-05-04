@@ -1,12 +1,15 @@
 import 'package:bounce/bounce.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:snaplink/constants/app_background.dart';
 import 'package:snaplink/constants/app_colors.dart';
 import 'package:snaplink/controller/auth_service.dart';
 import 'package:snaplink/generated/assets.dart';
-import 'package:snaplink/views/screens/auth/login.dart';
+import 'package:snaplink/views/screens/dialogs/dialogs.dart';
+import 'package:snaplink/views/screens/home/functions_image.dart';
+import 'package:snaplink/views/screens/home/home_widgets.dart';
 import 'package:snaplink/views/widget/common_image_view_widget.dart';
 import 'package:snaplink/views/widget/custom_animated_column.dart';
 import 'package:snaplink/views/widget/double_white_contianers.dart';
@@ -23,40 +26,37 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _authService = AuthService();
   String? _userEmail;
+  final mediaService = Get.put(MediaService());
 
   @override
   void initState() {
     super.initState();
-    _loadUserEmail();
+    _fetchUserMedia();
+    initializeAppLinks();
   }
 
-  void _loadUserEmail() {
-    final email = _authService.getCurrentUserEmail();
-    setState(() {
-      _userEmail = email;
-    });
+  Future<void> initializeAppLinks() async {
+    // Implementation will go here
   }
 
-  // function for logout
-  void _logout() async {
-    await _authService.signOut();
-    Get.offAll(() => const LoginScreen());
+  Future<void> _fetchUserMedia() async {
+    await mediaService.fetchUserMedia();
   }
-
-  final getCurrentUserEmail = AuthService().getCurrentUserEmail();
 
   @override
   Widget build(BuildContext context) {
-    return BackgroundImageContainer(
-      imagePath: Assets.imagesBackground,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: ListView(
+    return Scaffold(
+      body: BackgroundImageContainer(
+        imagePath: Assets.imagesBackground,
+
+        child: AnimatedListView(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
           children: [
-            Gap(20),
-            Bounce(
-              onTap: () {
-                _logout();
+            const Gap(20),
+            GestureDetector(
+              onTap: () async {
+                DialogHelper.LogoutDialog(context);
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -65,46 +65,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     imagePath: Assets.imagesLogoutButton,
                     height: 32,
                   ),
-                  Gap(20),
+                  const Gap(20),
                 ],
               ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CommonImageView(imagePath: Assets.imagesLogoSpell, height: 50),
-              ],
+            const SizedBox(height: 16),
+            Center(
+              child: CommonImageView(
+                imagePath: Assets.imagesLogoSpell,
+                height: 50,
+              ),
             ),
-            Gap(20),
+            const Gap(30),
             DoubleWhiteContainers2(
-              child: AnimatedColumn(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  CommonImageView(
-                    imagePath: Assets.imagesHomeMainUpload,
-                    height: 300,
-                  ),
-                  MyText(
-                    text: "Let’s Upload you image",
-                    size: 18,
-                    weight: FontWeight.w700,
-                  ),
-                  MyText(
-                    text:
-                        "Instant image sharing\nDive in by uploading your image",
-                    size: 14,
-                    color: kSubText,
-                    paddingTop: 10,
-                    paddingBottom: 10,
-                    textAlign: TextAlign.center,
-                    weight: FontWeight.w400,
-                  ),
-                  MyGradientButton(onTap: () {}, buttonText: "Upload Image"),
-              
-                ],
-              ),
+              child: Obx(() {
+                if (mediaService.mediaItems.isNotEmpty) {
+                  return DataBody(mediaService: mediaService);
+                } else {
+                  return NoDataBody(mediaService: mediaService);
+                }
+              }),
             ),
           ],
         ),
