@@ -1,10 +1,7 @@
-import 'package:bounce/bounce.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:snaplink/constants/app_background.dart';
-import 'package:snaplink/constants/app_colors.dart';
 import 'package:snaplink/controller/auth_service.dart';
 import 'package:snaplink/generated/assets.dart';
 import 'package:snaplink/views/screens/dialogs/dialogs.dart';
@@ -13,8 +10,6 @@ import 'package:snaplink/views/screens/home/home_widgets.dart';
 import 'package:snaplink/views/widget/common_image_view_widget.dart';
 import 'package:snaplink/views/widget/custom_animated_column.dart';
 import 'package:snaplink/views/widget/double_white_contianers.dart';
-import 'package:snaplink/views/widget/my_button_new.dart';
-import 'package:snaplink/views/widget/my_text_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

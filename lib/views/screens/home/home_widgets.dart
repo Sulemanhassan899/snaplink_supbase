@@ -9,6 +9,7 @@ import 'package:snaplink/views/screens/home/functions_image.dart';
 import 'package:snaplink/views/widget/common_image_view_widget.dart';
 import 'package:snaplink/views/widget/custom_animated_column.dart';
 import 'package:snaplink/views/widget/custom_animated_row.dart';
+import 'package:snaplink/views/widget/image_contianer.dart';
 import 'package:snaplink/views/widget/my_button_new.dart';
 import 'package:snaplink/views/widget/my_text_widget.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -88,120 +89,161 @@ class DataBody extends StatelessWidget {
               }
               return false;
             },
-            child: ListView.builder(
-              itemCount:
-                  mediaService.mediaItems.length +
-                  (mediaService.mediaItems.length <
-                          mediaService.totalItems.value
-                      ? 1
-                      : 0), // Only add +1 if more items exist
-              shrinkWrap: true,
-              physics:
-                  NeverScrollableScrollPhysics(), // Change to make it scrollable
-              itemBuilder: (context, index) {
-                if (index == mediaService.mediaItems.length) {
-                  // Show loading indicator at the bottom only when more items are expected
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
+            child: Column(
+              children: [
+                ListView.builder(
+                  itemCount:
+                      mediaService
+                          .mediaItems
+                          .length, // Remove +1, handle separately
+                  shrinkWrap: true,
+                  physics:
+                      NeverScrollableScrollPhysics(), // Change to make it scrollable
+                  itemBuilder: (context, index) {
+                    final colors = [LightBlue, Lightyellow, LightGreen];
+                    final item = mediaService.mediaItems[index];
 
-                // Rest of your existing item builder code...
-                final colors = [LightBlue, Lightyellow, LightGreen];
-                final item = mediaService.mediaItems[index];
+                    // Determine if we need a date header
+                    Widget? dateHeader;
+                    if (index == 0) {
+                      // Always show header for first item
+                      dateHeader = Padding(
+                        padding: const EdgeInsets.only(top: 10, bottom: 8),
+                        child: MyText(
+                          text: getRelativeDateString(item.uploadDateTime),
+                          size: 16,
+                          textAlign: TextAlign.left,
+                          weight: FontWeight.w500,
+                        ),
+                      );
+                    } else {
+                      // Check if date differs from previous item
+                      final previousItem = mediaService.mediaItems[index - 1];
+                      final previousDate = DateTime(
+                        previousItem.uploadDateTime.year,
+                        previousItem.uploadDateTime.month,
+                        previousItem.uploadDateTime.day,
+                      );
+                      final currentDate = DateTime(
+                        item.uploadDateTime.year,
+                        item.uploadDateTime.month,
+                        item.uploadDateTime.day,
+                      );
 
-                // Determine if we need a date header
-                Widget? dateHeader;
-                if (index == 0) {
-                  // Always show header for first item
-                  dateHeader = Padding(
-                    padding: const EdgeInsets.only(top: 10, bottom: 8),
-                    child: MyText(
-                      text: getRelativeDateString(item.uploadDateTime),
-                      size: 16,
-                      textAlign: TextAlign.left,
-                      weight: FontWeight.w500,
-                    ),
-                  );
-                } else {
-                  // Check if date differs from previous item
-                  final previousItem = mediaService.mediaItems[index - 1];
-                  final previousDate = DateTime(
-                    previousItem.uploadDateTime.year,
-                    previousItem.uploadDateTime.month,
-                    previousItem.uploadDateTime.day,
-                  );
-                  final currentDate = DateTime(
-                    item.uploadDateTime.year,
-                    item.uploadDateTime.month,
-                    item.uploadDateTime.day,
-                  );
+                      if (currentDate != previousDate) {
+                        dateHeader = MyText(
+                          text: getRelativeDateString(item.uploadDateTime),
+                          size: 16,
+                          paddingBottom: 6,
+                          textAlign: TextAlign.start,
+                          weight: FontWeight.w700,
+                        );
+                      }
+                    }
 
-                  if (currentDate != previousDate) {
-                    dateHeader = MyText(
-                      text: getRelativeDateString(item.uploadDateTime),
-                      size: 16,
-                      paddingBottom: 6,
-                      textAlign: TextAlign.start,
-                      weight: FontWeight.w700,
-                    );
-                  }
-                }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Show date header only if it's not null
+                        if (dateHeader != null) dateHeader,
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Show date header only if it's not null
-                    if (dateHeader != null) dateHeader,
-
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 6),
-                      decoration: BoxDecoration(
-                        color: kGreyContainerGreyColor2,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Slidable(
-                          endActionPane: ActionPane(
-                            motion: const ScrollMotion(),
-                            extentRatio: 0.2,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                ),
-                                child: Bounce(
-                                  duration: Duration(milliseconds: 100),
-                                  onTap:
-                                      () => mediaService.deleteMediaItem(item),
-                                  child: CommonImageView(
-                                    imagePath: Assets.imagesTrashRed,
-                                    height: 40,
-                                  ),
-                                ),
-                              ),
-                            ],
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 6),
+                          decoration: BoxDecoration(
+                            color: kGreyContainerGreyColor2,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: ImageContainer(
-                            color: colors[index % colors.length],
-                            imageUrl: item.url,
-                            thumbnailUrl: item.thumbnailUrl,
-                            isVideo: item.isVideo,
-                            date: item.uploadDate,
-                            size: "${item.fileSize}",
-                            onCopyUrl:
-                                () => mediaService.copyUrlToClipboard(item.url),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Slidable(
+                              endActionPane: ActionPane(
+                                motion: const ScrollMotion(),
+                                extentRatio: 0.2,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                    ),
+                                    child: Bounce(
+                                      duration: Duration(milliseconds: 100),
+                                      onTap:
+                                          () => mediaService.deleteMediaItem(
+                                            item,
+                                          ),
+                                      child: CommonImageView(
+                                        imagePath: Assets.imagesTrashRed,
+                                        height: 40,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              child: ImageContainer(
+                                color: colors[index % colors.length],
+                                imageUrl: item.url,
+                                thumbnailUrl: item.thumbnailUrl,
+                                isVideo: item.isVideo,
+                                date: item.uploadDate,
+                                size: "${item.fileSize}",
+                                onCopyUrl:
+                                    () => mediaService.copyUrlToClipboard(
+                                      item.url,
+                                    ),
+                              ),
+                            ),
                           ),
                         ),
+                      ],
+                    );
+                  },
+                ),
+
+                Obx(() {
+                  if (mediaService.isLoading.value &&
+                      mediaService.mediaItems.isNotEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (mediaService.mediaItems.length >=
+                          mediaService.itemsPerPage &&
+                      mediaService.mediaItems.length >=
+                          mediaService.totalItems.value) {
+                    // Show "Limit reached" message when all items are loaded
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        MyText(
+                          text: "Limit reached",
+                          size: 14,
+                          color: kSubText,
+                          textAlign: TextAlign.center,
+                          weight: FontWeight.w400,
+                        ),
+                      ],
+                    );
+                  } else if (mediaService.mediaItems.length <
+                      mediaService.totalItems.value) {
+                    // Show circular progress indicator and auto-load more after 2 seconds
+                    Future.delayed(Duration(seconds: 2), () {
+                      if (mediaService.mediaItems.length <
+                          mediaService.totalItems.value) {
+                        mediaService.loadMoreMedia();
+                      }
+                    });
+
+                    return Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(
+                        color: kPrimaryColor,
+                        strokeAlign: 3,
                       ),
-                    ),
-                  ],
-                );
-              },
+                    );
+                  } else {
+                    return SizedBox.shrink(); // No more items to load
+                  }
+                }),
+              ],
             ),
           );
         }),
@@ -211,124 +253,7 @@ class DataBody extends StatelessWidget {
   }
 }
 
-class ImageContainer extends StatelessWidget {
-  const ImageContainer({
-    super.key,
-    required this.color,
-    required this.imageUrl,
-    required this.date,
-    required this.size,
-    required this.onCopyUrl,
-    this.thumbnailUrl,
-    required this.isVideo,
-  });
-
-  final Color color;
-  final String date;
-  final String size;
-  final String imageUrl;
-  final String? thumbnailUrl;
-  final bool isVideo;
-  final VoidCallback onCopyUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: AnimatedRow(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              isVideo && thumbnailUrl != null
-                  ? CommonImageView(
-                    radius: 8,
-                    url: thumbnailUrl,
-                    height: 60,
-                    width: 60,
-                    fit: BoxFit.cover,
-                  )
-                  : CommonImageView(
-                    url: imageUrl,
-                    height: 60,
-                    radius: 8,
-                    width: 60,
-                    fit: BoxFit.cover,
-                  ),
-
-              const SizedBox(width: 20),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  MyText(
-                    text: 'Uploaded on',
-                    size: 12,
-                    color: kSubText,
-                    textAlign: TextAlign.center,
-                    weight: FontWeight.w400,
-                  ),
-                  MyText(
-                    text: date,
-                    size: 10,
-                    color: kSubText,
-                    textAlign: TextAlign.center,
-                    weight: FontWeight.w400,
-                  ),
-                  MyText(
-                    text: size,
-                    size: 14,
-                    textAlign: TextAlign.center,
-                    weight: FontWeight.w600,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Bounce(
-                duration: const Duration(milliseconds: 100),
-                onTap: onCopyUrl,
-                child: CommonImageView(
-                  imagePath: Assets.imagesCopyhttpIcon,
-                  height: 40,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Bounce(
-                child: CommonImageView(
-                  imagePath: Assets.imagesShareIcon,
-                  height: 40,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-String getRelativeDateString(DateTime dateTime) {
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final yesterday = today.subtract(const Duration(days: 1));
-  final dateToCompare = DateTime(dateTime.year, dateTime.month, dateTime.day);
-
-  if (dateToCompare == today) {
-    return "Today";
-  } else if (dateToCompare == yesterday) {
-    return "Yesterday";
-  } else {
-    return DateFormat('d,MMMM,yyyy').format(dateTime);
-  }
-}
-
+//no images found or new user
 class NoDataBody extends StatelessWidget {
   const NoDataBody({super.key, required this.mediaService});
 
@@ -371,5 +296,22 @@ class NoDataBody extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+//date formatting
+
+String getRelativeDateString(DateTime dateTime) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final yesterday = today.subtract(const Duration(days: 1));
+  final dateToCompare = DateTime(dateTime.year, dateTime.month, dateTime.day);
+
+  if (dateToCompare == today) {
+    return "Today";
+  } else if (dateToCompare == yesterday) {
+    return "Yesterday";
+  } else {
+    return DateFormat('d,MMMM,yyyy').format(dateTime);
   }
 }

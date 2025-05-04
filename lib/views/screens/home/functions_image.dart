@@ -10,6 +10,7 @@ import 'package:lottie/lottie.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:snaplink/constants/app_colors.dart';
+import 'package:snaplink/controller/model_classs.dart';
 import 'package:snaplink/generated/assets.dart';
 import 'package:snaplink/views/widget/common_image_view_widget.dart';
 import 'package:snaplink/views/widget/custom_animated_column.dart';
@@ -33,8 +34,9 @@ class MediaService extends GetxController {
   RxBool isUploading = false.obs;
   RxBool uploadCompleted = false.obs;
   Rx<Function?> cancelUploadCallback = Rx<Function?>(null);
-  
-  
+
+  RxInt totalUploads = 0.obs;
+  RxInt uploadsInProgress = 0.obs;
 
   // Add a property to store uploads for the HomeScreen
   final RxList<MediaItem> uploads = <MediaItem>[].obs;
@@ -45,6 +47,8 @@ class MediaService extends GetxController {
     fetchUserMedia();
   }
 
+
+// UI for bottomsheet and dialog
   Future<void> showMediaPickerDialog() async {
     Get.dialog(
       AnimatedColumn(
@@ -107,221 +111,7 @@ class MediaService extends GetxController {
     );
   }
 
-  // Function to pick and upload media (images or videos)
-  Future<void> pickAndUploadMedia2(ImageSource source) async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: source,
-      ); // Using ImageSource as parameter
-
-      if (pickedFile != null) {
-        // Show uploading bottom sheet
-        showUploadingBottomSheet(Get.context!);
-
-        isLoading.value = true;
-
-        // Compress image
-        final File compressedFile = await compressImage(File(pickedFile.path));
-
-        // Calculate file size
-        final double fileSizeInMB = await getFileSizeInMB(compressedFile);
-
-        // Get file type
-        final String fileType = path
-            .extension(pickedFile.path)
-            .replaceAll('.', '');
-
-        // Upload to Supabase storage
-        final String fileUrl = await uploadFileToStorage(
-          compressedFile,
-          fileType,
-        );
-
-        // Save metadata to database
-        await saveMediaMetadata(
-          fileUrl,
-          fileSizeInMB,
-          fileType,
-          'image',
-          thumbnailUrl: null,
-        );
-        await fetchUserMedia();
-
-        uploadCompleted.value = true; // Show confetti animation
-
-        Future.delayed(Duration(seconds: 2), () {
-          if (Get.isBottomSheetOpen ?? false) {
-            Get.back(); // Close the bottom sheet
-          }
-        });
-      } else {
-        final XFile? pickedVideoFile = await _picker.pickVideo(
-          source: source, // Pick video as well using ImageSource.gallery
-        );
-
-        if (pickedVideoFile != null) {
-          // Show uploading bottom sheet
-          showUploadingBottomSheet(Get.context!);
-
-          isLoading.value = true;
-
-          // Compress video
-          final MediaInfo? compressedInfo = await compressVideo(
-            File(pickedVideoFile.path),
-          );
-
-          if (compressedInfo?.file != null) {
-            // Calculate file size
-            final double fileSizeInMB = await getFileSizeInMB(
-              compressedInfo!.file!,
-            );
-
-            // Get file type
-            const String fileType = 'mp4';
-
-            // Upload to Supabase storage
-            final String fileUrl = await uploadFileToStorage(
-              compressedInfo.file!,
-              fileType,
-            );
-
-            // Save metadata to database
-            // Generate thumbnail
-            final File? thumbnailFile = await generateVideoThumbnail(
-              File(pickedVideoFile.path),
-            );
-
-            String? thumbUrl;
-            if (thumbnailFile != null) {
-              thumbUrl = await uploadFileToStorage(thumbnailFile, 'jpg');
-            }
-
-            // Save metadata to database with thumbnail URL
-            await saveMediaMetadata(
-              fileUrl,
-              fileSizeInMB,
-              fileType,
-              'video',
-              thumbnailUrl: thumbUrl,
-            );
-
-            // Refresh media list
-            await fetchUserMedia();
-
-            uploadCompleted.value = true; // Show confetti animation
-
-            Future.delayed(Duration(seconds: 2), () {
-              if (Get.isBottomSheetOpen ?? false) {
-                Get.back(); // Close the bottom sheet
-              }
-            });
-          }
-        }
-      }
-    } catch (e) {
-      isLoading.value = false;
-      // Close bottom sheet if open
-      if (Get.isBottomSheetOpen ?? false) {
-        Get.back();
-      }
-      isUploading.value = false;
-
-      print(e);
-      Get.snackbar(
-        'Error',
-        'Failed to upload media: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
-  }
-
-Future<void> pickAndUploadMedia(ImageSource source) async {
-  try {
-    // If source is camera, keep using image_picker
-    if (source == ImageSource.camera) {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
-      if (pickedFile == null) return;
-
-      // Compress and upload
-      await _handleSingleImage(File(pickedFile.path));
-      return;
-    }
-
-    // For gallery: use file_picker to allow multiple and mixed media
-    final result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg', 'png', 'mp4', 'mov'],
-    );
-
-    if (result == null) return;
-
-    for (var file in result.files) {
-      final filePath = file.path;
-      if (filePath == null) continue;
-
-      final fileExt = path.extension(filePath).toLowerCase();
-
-      if (['.jpg', '.jpeg', '.png'].contains(fileExt)) {
-        await _handleSingleImage(File(filePath));
-      } else if (['.mp4', '.mov'].contains(fileExt)) {
-        await _handleSingleVideo(File(filePath));
-      }
-    }
-  } catch (e) {
-    if (Get.isBottomSheetOpen ?? false) Get.back();
-    isUploading.value = false;
-    print(e);
-    Get.snackbar('Error', 'Failed to upload media: $e', snackPosition: SnackPosition.BOTTOM);
-  }
-}
-
-Future<void> _handleSingleImage(File imageFile) async {
-  showUploadingBottomSheet(Get.context!);
-  isLoading.value = true;
-
-  final File compressedFile = await compressImage(imageFile);
-  final double fileSize = await getFileSizeInMB(compressedFile);
-  final String fileType = path.extension(imageFile.path).replaceAll('.', '');
-  final String url = await uploadFileToStorage(compressedFile, fileType);
-
-  await saveMediaMetadata(url, fileSize, fileType, 'image');
-  await fetchUserMedia();
-
-  uploadCompleted.value = true;
-  Future.delayed(Duration(seconds: 2), () {
-    if (Get.isBottomSheetOpen ?? false) Get.back();
-  });
-}
-
-Future<void> _handleSingleVideo(File videoFile) async {
-  showUploadingBottomSheet(Get.context!);
-  isLoading.value = true;
-
-  final MediaInfo? compressedInfo = await compressVideo(videoFile);
-  if (compressedInfo?.file == null) return;
-
-  final double fileSize = await getFileSizeInMB(compressedInfo!.file!);
-  final String url = await uploadFileToStorage(compressedInfo.file!, 'mp4');
-
-  final File? thumbnailFile = await generateVideoThumbnail(videoFile);
-  String? thumbUrl;
-  if (thumbnailFile != null) {
-    thumbUrl = await uploadFileToStorage(thumbnailFile, 'jpg');
-  }
-
-  await saveMediaMetadata(url, fileSize, 'mp4', 'video', thumbnailUrl: thumbUrl);
-  await fetchUserMedia();
-
-  uploadCompleted.value = true;
-  Future.delayed(Duration(seconds: 2), () {
-    if (Get.isBottomSheetOpen ?? false) Get.back();
-  });
-}
-
-
-
-  void showUploadingBottomSheet(BuildContext context) {
+ void showUploadingBottomSheet(BuildContext context) {
     isUploading.value = true;
     uploadCompleted.value = false;
 
@@ -393,81 +183,9 @@ Future<void> _handleSingleVideo(File videoFile) async {
     );
   }
 
-  // Function to compress image
-  Future<File> compressImage(File file) async {
-    final String dir = path.dirname(file.path);
-    final String fileName = path.basenameWithoutExtension(file.path);
-    final String extension = path.extension(file.path);
-    final String targetPath = '$dir/${fileName}_compressed$extension';
 
-    final XFile? result = await FlutterImageCompress.compressAndGetFile(
-      file.path,
-      targetPath,
-      quality: 50,
-    );
 
-    if (result == null) {
-      return file;
-    }
-
-    final resultFile = File(result.path);
-    if (!await resultFile.exists() || await resultFile.length() == 0) {
-      return file;
-    }
-
-    return resultFile;
-  }
-
-  // Generate a thumbnail image from the first frame of the video (without plugin)
-  Future<File?> generateVideoThumbnail(File videoFile) async {
-    try {
-      final ProcessResult result = await Process.run('ffmpeg', [
-        '-i',
-        videoFile.path,
-        '-ss',
-        '00:00:01.000',
-        '-vframes',
-        '1',
-        '${videoFile.path}_thumb.jpg',
-      ]);
-
-      final thumbPath = '${videoFile.path}_thumb.jpg';
-      final thumbFile = File(thumbPath);
-
-      if (await thumbFile.exists()) {
-        return thumbFile;
-      } else {
-        print('Thumbnail not generated: ${result.stderr}');
-        return null;
-      }
-    } catch (e) {
-      print('Error generating video thumbnail: $e');
-      return null;
-    }
-  }
-
-  // Function to compress video
-  Future<MediaInfo?> compressVideo(File file) async {
-    try {
-      return await VideoCompress.compressVideo(
-        file.path,
-        quality: VideoQuality.MediumQuality,
-        deleteOrigin: false,
-      );
-    } catch (e) {
-      print('Error compressing video: $e');
-      return null;
-    }
-  }
-
-  // Function to get file size in MB with 2 decimal places
-  Future<double> getFileSizeInMB(File file) async {
-    final int bytes = await file.length();
-    final double sizeInMB = bytes / (1024 * 1024);
-    return double.parse(sizeInMB.toStringAsFixed(2));
-  }
-
-  // Function to upload file to Supabase storage
+//  upload file to Supabase storage
   Future<String> uploadFileToStorage(File file, String fileType) async {
     try {
       final String userId = _supabase.auth.currentUser!.id;
@@ -499,50 +217,9 @@ Future<void> _handleSingleVideo(File videoFile) async {
     }
   }
 
-  // Updated function to save media metadata to database with thumbnail support
-  Future<void> saveMediaMetadata(
-    String url,
-    double size,
-    String fileType,
-    String mediaType, {
-    String? thumbnailUrl,
-  }) async {
-    try {
-      final String userId = _supabase.auth.currentUser!.id;
-      final String formattedDate = DateFormat(
-        'MMMM d, yyyy',
-      ).format(DateTime.now());
-      final DateTime now = DateTime.now();
 
-      // Generate a UUID instead of concatenating strings
-      final String id = now.millisecondsSinceEpoch.toString();
 
-      final Map<String, dynamic> mediaData = {
-        'id': id,
-        'user_id': userId,
-        'url': url,
-        'upload_date': formattedDate,
-        'file_size': '${size.toStringAsFixed(2)} MB',
-        'file_type': fileType,
-        'is_video': mediaType == 'video',
-        'created_at':
-            now.toIso8601String(), // Add ISO format timestamp for accurate sorting
-      };
-
-      // Add thumbnail URL if available
-      if (thumbnailUrl != null) {
-        mediaData['thumbnail_url'] = thumbnailUrl;
-      }
-
-      final response =
-          await _supabase.from('media_files').insert(mediaData).select();
-
-      print('Insert response: $response');
-    } catch (e) {
-      print('Database insert error: $e');
-      throw Exception('Failed to save media metadata: $e');
-    }
-  }
+//fetch and load 
 
   Future<void> fetchUserMedia() async {
     try {
@@ -605,13 +282,281 @@ Future<void> _handleSingleVideo(File videoFile) async {
     }
   }
 
+  // Enhanced loadMoreMedia function with a check for the 50 items per page limit
   void loadMoreMedia() {
-    if (mediaItems.length < totalItems.value) {
-      // Check if there are more items to load
+    if (mediaItems.length < totalItems.value &&
+        currentPage.value * itemsPerPage < totalItems.value) {
+      // Only load more if there are additional items and we haven't reached the limit
       currentPage.value++;
       fetchUserMedia();
     }
   }
+
+
+
+
+//compress and uplaod multiple images and videos 
+  Future<void> pickAndUploadMedia(ImageSource source) async {
+    try {
+      // If source is camera, keep using image_picker
+      if (source == ImageSource.camera) {
+        final XFile? pickedFile = await _picker.pickImage(source: source);
+        if (pickedFile == null) return;
+
+        // Increment the number of uploads in progress
+        uploadsInProgress.value++;
+        totalUploads.value++;
+
+        // Compress and upload
+        await _handleSingleImage(File(pickedFile.path));
+        return;
+      }
+
+      // For gallery: use file_picker to allow multiple and mixed media
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'mp4', 'mov'],
+      );
+
+      if (result == null) return;
+
+      // Increment total number of uploads
+      totalUploads.value = result.files.length;
+
+      for (var file in result.files) {
+        final filePath = file.path;
+        if (filePath == null) continue;
+
+        final fileExt = path.extension(filePath).toLowerCase();
+
+        // Increment in-progress counter
+        uploadsInProgress.value++;
+
+        if (['.jpg', '.jpeg', '.png'].contains(fileExt)) {
+          await _handleSingleImage(File(filePath));
+        } else if (['.mp4', '.mov'].contains(fileExt)) {
+          await _handleSingleVideo(File(filePath));
+        }
+      }
+    } catch (e) {
+      if (Get.isBottomSheetOpen ?? false) Get.back();
+      isUploading.value = false;
+      print(e);
+      Get.snackbar(
+        'Error',
+        'Failed to upload media: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  Future<void> _handleSingleImage(File imageFile) async {
+    showUploadingBottomSheet(Get.context!);
+    isLoading.value = true;
+
+    final File compressedFile = await compressImage(imageFile);
+    final double fileSize = await getFileSizeInMB(compressedFile);
+    final String fileType = path.extension(imageFile.path).replaceAll('.', '');
+    final String url = await uploadFileToStorage(compressedFile, fileType);
+
+    await saveMediaMetadata(url, fileSize, fileType, 'image');
+    await fetchUserMedia();
+
+    // Decrement the in-progress counter and check if all uploads are done
+    uploadsInProgress.value--;
+
+    if (uploadsInProgress.value == 0) {
+      // All uploads completed, close the bottom sheet
+      uploadCompleted.value = true;
+      Future.delayed(Duration(seconds: 2), () {
+        if (Get.isBottomSheetOpen ?? false) {
+          Get.back();
+        }
+      });
+    }
+  }
+
+  Future<void> _handleSingleVideo(File videoFile) async {
+    showUploadingBottomSheet(Get.context!);
+    isLoading.value = true;
+
+    final MediaInfo? compressedInfo = await compressVideo(videoFile);
+    if (compressedInfo?.file == null) return;
+
+    final double fileSize = await getFileSizeInMB(compressedInfo!.file!);
+    final String url = await uploadFileToStorage(compressedInfo.file!, 'mp4');
+
+    final File? thumbnailFile = await generateVideoThumbnail(videoFile);
+    String? thumbUrl;
+    if (thumbnailFile != null) {
+      thumbUrl = await uploadFileToStorage(thumbnailFile, 'jpg');
+    }
+
+    await saveMediaMetadata(
+      url,
+      fileSize,
+      'mp4',
+      'video',
+      thumbnailUrl: thumbUrl,
+    );
+    await fetchUserMedia();
+
+    // Decrement the in-progress counter and check if all uploads are done
+    uploadsInProgress.value--;
+
+    if (uploadsInProgress.value == 0) {
+      // All uploads completed, close the bottom sheet
+      uploadCompleted.value = true;
+      Future.delayed(Duration(seconds: 2), () {
+        if (Get.isBottomSheetOpen ?? false) {
+          Get.back();
+        }
+      });
+    }
+  }
+ 
+  Future<File> compressImage(File file) async {
+    final String dir = path.dirname(file.path);
+    final String fileName = path.basenameWithoutExtension(file.path);
+    final String extension = path.extension(file.path);
+    final String targetPath = '$dir/${fileName}_compressed$extension';
+
+    final XFile? result = await FlutterImageCompress.compressAndGetFile(
+      file.path,
+      targetPath,
+      quality: 50,
+    );
+
+    if (result == null) {
+      return file;
+    }
+
+    final resultFile = File(result.path);
+    if (!await resultFile.exists() || await resultFile.length() == 0) {
+      return file;
+    }
+
+    return resultFile;
+  }
+
+  Future<MediaInfo?> compressVideo(File file) async {
+    try {
+      return await VideoCompress.compressVideo(
+        file.path,
+        quality: VideoQuality.MediumQuality,
+        deleteOrigin: false,
+      );
+    } catch (e) {
+      print('Error compressing video: $e');
+      return null;
+    }
+  }
+
+
+//thumbnail
+
+Future<File?> generateVideoThumbnail(File videoFile) async {
+  try {
+    // Use VideoCompress to generate thumbnail with better quality
+    final thumbnailFile = await VideoCompress.getFileThumbnail(
+      videoFile.path,
+      quality: 80, // Higher quality for better thumbnails
+      position:
+          1000, // Get thumbnail from 1 second into the video for better representation
+    );
+
+    // Verify the thumbnail was created
+    if (thumbnailFile != null && await thumbnailFile.exists()) {
+      return thumbnailFile;
+    } else {
+      print('Thumbnail generation failed: No file created');
+      return null;
+    }
+  } catch (e) {
+    print('Error generating video thumbnail: $e');
+
+    // Fallback method if VideoCompress fails
+    try {
+      final String outputPath = '${videoFile.path}_thumb.jpg';
+      final ProcessResult result = await Process.run('ffmpeg', [
+        '-i', videoFile.path,
+        '-ss', '00:00:01.000',
+        '-vframes', '1',
+        '-q:v', '2', // Higher quality
+        outputPath,
+      ]);
+
+      final File thumbFile = File(outputPath);
+      if (await thumbFile.exists()) {
+        return thumbFile;
+      } else {
+        print('FFmpeg thumbnail generation failed: ${result.stderr}');
+        return null;
+      }
+    } catch (e) {
+      print('Fallback thumbnail generation failed: $e');
+      return null;
+    }
+  }
+}
+
+  Future<void> saveMediaMetadata(
+    String url,
+    double size,
+    String fileType,
+    String mediaType, {
+    String? thumbnailUrl,
+  }) async {
+    try {
+      final String userId = _supabase.auth.currentUser!.id;
+      final String formattedDate = DateFormat(
+        'MMMM d, yyyy',
+      ).format(DateTime.now());
+      final DateTime now = DateTime.now();
+
+      // Generate a UUID instead of concatenating strings
+      final String id = now.millisecondsSinceEpoch.toString();
+
+      final Map<String, dynamic> mediaData = {
+        'id': id,
+        'user_id': userId,
+        'url': url,
+        'upload_date': formattedDate,
+        'file_size': '${size.toStringAsFixed(2)} MB',
+        'file_type': fileType,
+        'is_video': mediaType == 'video',
+        'created_at':
+            now.toIso8601String(), // Add ISO format timestamp for accurate sorting
+      };
+
+      // Add thumbnail URL if available
+      if (thumbnailUrl != null) {
+        mediaData['thumbnail_url'] = thumbnailUrl;
+      }
+
+      final response =
+          await _supabase.from('media_files').insert(mediaData).select();
+
+      print('Insert response: $response');
+    } catch (e) {
+      print('Database insert error: $e');
+      throw Exception('Failed to save media metadata: $e');
+    }
+  }
+
+
+
+ 
+// Getting file size in MB with 2 decimal places
+  Future<double> getFileSizeInMB(File file) async {
+    final int bytes = await file.length();
+    final double sizeInMB = bytes / (1024 * 1024);
+    return double.parse(sizeInMB.toStringAsFixed(2));
+  }
+
+
+
 
   // Function to delete media item
   Future<void> deleteMediaItem(MediaItem item) async {
@@ -673,108 +618,5 @@ Future<void> _handleSingleVideo(File videoFile) async {
         snackPosition: SnackPosition.BOTTOM,
       );
     }
-  }
-}
-
-Future<File?> generateVideoThumbnail(File videoFile) async {
-  try {
-    // Use VideoCompress to generate thumbnail with better quality
-    final thumbnailFile = await VideoCompress.getFileThumbnail(
-      videoFile.path,
-      quality: 80, // Higher quality for better thumbnails
-      position:
-          1000, // Get thumbnail from 1 second into the video for better representation
-    );
-
-    // Verify the thumbnail was created
-    if (thumbnailFile != null && await thumbnailFile.exists()) {
-      return thumbnailFile;
-    } else {
-      print('Thumbnail generation failed: No file created');
-      return null;
-    }
-  } catch (e) {
-    print('Error generating video thumbnail: $e');
-
-    // Fallback method if VideoCompress fails
-    try {
-      final String outputPath = '${videoFile.path}_thumb.jpg';
-      final ProcessResult result = await Process.run('ffmpeg', [
-        '-i', videoFile.path,
-        '-ss', '00:00:01.000',
-        '-vframes', '1',
-        '-q:v', '2', // Higher quality
-        outputPath,
-      ]);
-
-      final File thumbFile = File(outputPath);
-      if (await thumbFile.exists()) {
-        return thumbFile;
-      } else {
-        print('FFmpeg thumbnail generation failed: ${result.stderr}');
-        return null;
-      }
-    } catch (e) {
-      print('Fallback thumbnail generation failed: $e');
-      return null;
-    }
-  }
-}
-
-class MediaItem {
-  final String id;
-  final String userId;
-  final String url;
-  final String uploadDate;
-  final String fileSize;
-  final String fileType;
-  final bool isVideo;
-  final String? thumbnailUrl;
-  // Add a DateTime property for easy comparison
-  final DateTime uploadDateTime;
-
-  MediaItem({
-    required this.id,
-    required this.userId,
-    required this.url,
-    required this.uploadDate,
-    required this.fileSize,
-    required this.fileType,
-    required this.isVideo,
-    this.thumbnailUrl,
-    required this.uploadDateTime,
-  });
-
-  factory MediaItem.fromJson(Map<String, dynamic> json) {
-    // Parse the formatted date or use created_at timestamp
-    DateTime dateTime;
-    try {
-      if (json['created_at'] != null) {
-        dateTime = DateTime.parse(json['created_at']);
-      } else {
-        // Try to parse the upload_date with various formats
-        final String dateStr = json['upload_date'] ?? '';
-        try {
-          dateTime = DateFormat('MMMM d, yyyy').parse(dateStr);
-        } catch (e) {
-          // Fallback to current date if parsing fails
-          dateTime = DateTime.now();
-        }
-      }
-    } catch (e) {
-      dateTime = DateTime.now();
-    }
-
-    return MediaItem(
-      id: json['id'] ?? '',
-      userId: json['user_id'] ?? '',
-      url: json['url'] ?? '',
-      uploadDate: json['upload_date'] ?? '',
-      fileSize: json['file_size'] ?? '',
-      fileType: json['file_type'] ?? '',
-      isVideo: json['is_video'] ?? false,
-      thumbnailUrl: json['thumbnail_url'],
-      uploadDateTime: dateTime,
-    );
   }
 }
