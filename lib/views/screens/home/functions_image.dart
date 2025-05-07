@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'package:bounce/bounce.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:lottie/lottie.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -41,14 +43,21 @@ class MediaService extends GetxController {
   // Add a property to store uploads for the HomeScreen
   final RxList<MediaItem> uploads = <MediaItem>[].obs;
 
+  final PagingController<int, MediaItem> pagingController = PagingController(
+    firstPageKey: 1,
+  );
+
   @override
   void onInit() {
     super.onInit();
-    fetchUserMedia();
+
+    pagingController.addPageRequestListener((pageKey) {
+      fetchUserMedia(page: pageKey);
+    });
+
   }
 
-
-// UI for bottomsheet and dialog
+  // UI for bottomsheet and dialog
   Future<void> showMediaPickerDialog() async {
     Get.dialog(
       AnimatedColumn(
@@ -111,7 +120,7 @@ class MediaService extends GetxController {
     );
   }
 
- void showUploadingBottomSheet(BuildContext context) {
+  void showUploadingBottomSheet(BuildContext context) {
     isUploading.value = true;
     uploadCompleted.value = false;
 
@@ -183,9 +192,7 @@ class MediaService extends GetxController {
     );
   }
 
-
-
-//  upload file to Supabase storage
+  //  upload file to Supabase storage
   Future<String> uploadFileToStorage(File file, String fileType) async {
     try {
       final String userId = _supabase.auth.currentUser!.id;
@@ -217,85 +224,7 @@ class MediaService extends GetxController {
     }
   }
 
-
-
-//fetch and load 
-
-  Future<void> fetchUserMedia() async {
-    try {
-      isLoading.value = true;
-
-      // Get the current user ID
-      final user = _supabase.auth.currentUser;
-      if (user == null) {
-        // User not logged in, clear data
-        mediaItems.clear();
-        totalItems.value = 0;
-        hasData.value = false;
-        isLoading.value = false;
-        return;
-      }
-
-      final String userId = user.id;
-
-      // Get total count from media_files table
-      final countResponse =
-          await _supabase
-              .from('media_files')
-              .select()
-              .eq('user_id', userId)
-              .count();
-
-      totalItems.value = countResponse.count;
-
-      // Fetch paginated data from media_files table
-      final response = await _supabase
-          .from('media_files')
-          .select()
-          .eq('user_id', userId)
-          .order(
-            'created_at',
-            ascending: false,
-          ) // Use created_at for accurate timestamp sorting
-          .range(
-            0, // Always start from the beginning for proper pagination
-            currentPage.value * itemsPerPage -
-                1, // Load all items up to current page
-          );
-
-      final List<MediaItem> items =
-          (response as List).map((item) => MediaItem.fromJson(item)).toList();
-
-      mediaItems.value = items;
-      uploads.value = items; // Update uploads list for HomeScreen
-      hasData.value = items.isNotEmpty;
-
-      isLoading.value = false;
-    } catch (e) {
-      isLoading.value = false;
-      print('Error fetching media: $e');
-
-      // Clear data on error
-      mediaItems.clear();
-      totalItems.value = 0;
-      hasData.value = false;
-    }
-  }
-
-  // Enhanced loadMoreMedia function with a check for the 50 items per page limit
-  void loadMoreMedia() {
-    if (mediaItems.length < totalItems.value &&
-        currentPage.value * itemsPerPage < totalItems.value) {
-      // Only load more if there are additional items and we haven't reached the limit
-      currentPage.value++;
-      fetchUserMedia();
-    }
-  }
-
-
-
-
-//compress and uplaod multiple images and videos 
+  //uploding
   Future<void> pickAndUploadMedia(ImageSource source) async {
     try {
       // If source is camera, keep using image_picker
@@ -306,6 +235,11 @@ class MediaService extends GetxController {
         // Increment the number of uploads in progress
         uploadsInProgress.value++;
         totalUploads.value++;
+
+        // Show bottom sheet once at the beginning
+        if (uploadsInProgress.value == 1) {
+          showUploadingBottomSheet(Get.context!);
+        }
 
         // Compress and upload
         await _handleSingleImage(File(pickedFile.path));
@@ -323,6 +257,11 @@ class MediaService extends GetxController {
 
       // Increment total number of uploads
       totalUploads.value = result.files.length;
+
+      // Show bottom sheet once at the beginning
+      if (uploadsInProgress.value == 0) {
+        showUploadingBottomSheet(Get.context!);
+      }
 
       for (var file in result.files) {
         final filePath = file.path;
@@ -352,7 +291,12 @@ class MediaService extends GetxController {
   }
 
   Future<void> _handleSingleImage(File imageFile) async {
-    showUploadingBottomSheet(Get.context!);
+    // Don't call this method again if it's already uploading
+    if (!isUploading.value) {
+      showUploadingBottomSheet(
+        Get.context!,
+      ); // Open the bottom sheet when starting upload
+    }
     isLoading.value = true;
 
     final File compressedFile = await compressImage(imageFile);
@@ -361,7 +305,9 @@ class MediaService extends GetxController {
     final String url = await uploadFileToStorage(compressedFile, fileType);
 
     await saveMediaMetadata(url, fileSize, fileType, 'image');
-    await fetchUserMedia();
+
+    // Refresh pagination controller instead of directly fetching
+    pagingController.refresh();
 
     // Decrement the in-progress counter and check if all uploads are done
     uploadsInProgress.value--;
@@ -400,7 +346,9 @@ class MediaService extends GetxController {
       'video',
       thumbnailUrl: thumbUrl,
     );
-    await fetchUserMedia();
+
+    // Refresh pagination controller instead of directly fetching
+    pagingController.refresh();
 
     // Decrement the in-progress counter and check if all uploads are done
     uploadsInProgress.value--;
@@ -415,7 +363,142 @@ class MediaService extends GetxController {
       });
     }
   }
- 
+
+  //fetch
+
+  Future<void> fetchUserMedia2() async {
+    try {
+      isLoading.value = true;
+
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        mediaItems.clear();
+        totalItems.value = 0;
+        hasData.value = false;
+        isLoading.value = false;
+        return;
+      }
+
+      final String userId = user.id;
+
+      // Get total count from media_files table
+      final countResponse =
+          await _supabase
+              .from('media_files')
+              .select()
+              .eq('user_id', userId)
+              .count();
+
+      totalItems.value = countResponse.count;
+
+      // Fetch all media data without using pagination
+      final response = await _supabase
+          .from('media_files')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+
+      final List<MediaItem> items =
+          (response as List).map((item) => MediaItem.fromJson(item)).toList();
+
+      mediaItems.value = items;
+      uploads.value = items; // Update uploads list for HomeScreen
+      hasData.value = items.isNotEmpty;
+
+      isLoading.value = false;
+    } catch (e) {
+      isLoading.value = false;
+      print('Error fetching media: $e');
+
+      // Clear data on error
+      mediaItems.clear();
+      totalItems.value = 0;
+      hasData.value = false;
+    }
+  }
+
+  Future<void> fetchUserMedia({required int page}) async {
+    try {
+      if (page == 1) {
+        isLoading.value = true;
+      }
+
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        pagingController.value = PagingState(
+          itemList: [],
+          nextPageKey: null,
+          error: null,
+        );
+        mediaItems.clear();
+        totalItems.value = 0;
+        hasData.value = false;
+        isLoading.value = false;
+        return;
+      }
+
+      final String userId = user.id;
+
+      // Fetch total count once if needed
+      if (totalItems.value == 0 || page == 1) {
+        final countResponse =
+            await _supabase
+                .from('media_files')
+                .select()
+                .eq('user_id', userId)
+                .count();
+        totalItems.value = countResponse.count;
+      }
+
+      // Use compute for JSON parsing to move it off the main thread
+      final response = await _supabase
+          .from('media_files')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false)
+          .range((page - 1) * itemsPerPage, page * itemsPerPage - 1);
+
+      // Use isolate to process data off the main thread
+      final List<MediaItem> newItems = await compute(
+        _parseMediaItems,
+        response as List,
+      );
+
+      // Update the mediaItems list efficiently
+      if (page == 1) {
+        mediaItems.value = newItems;
+      } else {
+        // Add new items to existing list
+        final List<MediaItem> updatedItems = [...mediaItems, ...newItems];
+        mediaItems.value = updatedItems;
+      }
+
+      hasData.value = mediaItems.isNotEmpty;
+
+      final isLastPage =
+          newItems.length < itemsPerPage ||
+          mediaItems.length >= totalItems.value;
+
+      if (isLastPage) {
+        pagingController.appendLastPage(newItems);
+      } else {
+        pagingController.appendPage(newItems, page + 1);
+      }
+
+      isLoading.value = false;
+    } catch (e) {
+      isLoading.value = false;
+      print('Error fetching media: $e');
+      pagingController.error = e;
+    }
+  }
+
+  // Static method to parse media items in an isolate
+  static List<MediaItem> _parseMediaItems(List responseData) {
+    return responseData.map((item) => MediaItem.fromJson(item)).toList();
+  }
+
+  //compress
   Future<File> compressImage(File file) async {
     final String dir = path.dirname(file.path);
     final String fileName = path.basenameWithoutExtension(file.path);
@@ -453,53 +536,52 @@ class MediaService extends GetxController {
     }
   }
 
+  //thumbnail
 
-//thumbnail
-
-Future<File?> generateVideoThumbnail(File videoFile) async {
-  try {
-    // Use VideoCompress to generate thumbnail with better quality
-    final thumbnailFile = await VideoCompress.getFileThumbnail(
-      videoFile.path,
-      quality: 80, // Higher quality for better thumbnails
-      position:
-          1000, // Get thumbnail from 1 second into the video for better representation
-    );
-
-    // Verify the thumbnail was created
-    if (thumbnailFile != null && await thumbnailFile.exists()) {
-      return thumbnailFile;
-    } else {
-      print('Thumbnail generation failed: No file created');
-      return null;
-    }
-  } catch (e) {
-    print('Error generating video thumbnail: $e');
-
-    // Fallback method if VideoCompress fails
+  Future<File?> generateVideoThumbnail(File videoFile) async {
     try {
-      final String outputPath = '${videoFile.path}_thumb.jpg';
-      final ProcessResult result = await Process.run('ffmpeg', [
-        '-i', videoFile.path,
-        '-ss', '00:00:01.000',
-        '-vframes', '1',
-        '-q:v', '2', // Higher quality
-        outputPath,
-      ]);
+      // Use VideoCompress to generate thumbnail with better quality
+      final thumbnailFile = await VideoCompress.getFileThumbnail(
+        videoFile.path,
+        quality: 80, // Higher quality for better thumbnails
+        position:
+            1000, // Get thumbnail from 1 second into the video for better representation
+      );
 
-      final File thumbFile = File(outputPath);
-      if (await thumbFile.exists()) {
-        return thumbFile;
+      // Verify the thumbnail was created
+      if (thumbnailFile != null && await thumbnailFile.exists()) {
+        return thumbnailFile;
       } else {
-        print('FFmpeg thumbnail generation failed: ${result.stderr}');
+        print('Thumbnail generation failed: No file created');
         return null;
       }
     } catch (e) {
-      print('Fallback thumbnail generation failed: $e');
-      return null;
+      print('Error generating video thumbnail: $e');
+
+      // Fallback method if VideoCompress fails
+      try {
+        final String outputPath = '${videoFile.path}_thumb.jpg';
+        final ProcessResult result = await Process.run('ffmpeg', [
+          '-i', videoFile.path,
+          '-ss', '00:00:01.000',
+          '-vframes', '1',
+          '-q:v', '2', // Higher quality
+          outputPath,
+        ]);
+
+        final File thumbFile = File(outputPath);
+        if (await thumbFile.exists()) {
+          return thumbFile;
+        } else {
+          print('FFmpeg thumbnail generation failed: ${result.stderr}');
+          return null;
+        }
+      } catch (e) {
+        print('Fallback thumbnail generation failed: $e');
+        return null;
+      }
     }
   }
-}
 
   Future<void> saveMediaMetadata(
     String url,
@@ -545,18 +627,12 @@ Future<File?> generateVideoThumbnail(File videoFile) async {
     }
   }
 
-
-
- 
-// Getting file size in MB with 2 decimal places
+  // Getting file size in MB with 2 decimal places
   Future<double> getFileSizeInMB(File file) async {
     final int bytes = await file.length();
     final double sizeInMB = bytes / (1024 * 1024);
     return double.parse(sizeInMB.toStringAsFixed(2));
   }
-
-
-
 
   // Function to delete media item
   Future<void> deleteMediaItem(MediaItem item) async {
@@ -580,8 +656,8 @@ Future<File?> generateVideoThumbnail(File videoFile) async {
       // Delete from database
       await _supabase.from('media_files').delete().eq('id', item.id);
 
-      // Refresh media list
-      await fetchUserMedia();
+      // Refresh pagination controller instead of directly fetching
+      pagingController.refresh();
 
       isLoading.value = false;
       Get.snackbar(
@@ -597,6 +673,15 @@ Future<File?> generateVideoThumbnail(File videoFile) async {
         snackPosition: SnackPosition.BOTTOM,
       );
     }
+  }
+
+  // Function to load more media - improved with better error handling
+  Future<void> loadMoreMedia() async {
+    if (isLoading.value || mediaItems.length >= totalItems.value) {
+      return;
+    }
+    final nextPage = (mediaItems.length / itemsPerPage).ceil() + 1;
+    await fetchUserMedia(page: nextPage);
   }
 
   // Function to copy URL to clipboard

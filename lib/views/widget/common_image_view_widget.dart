@@ -80,6 +80,7 @@ class CommonImageView extends StatelessWidget {
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
+                        strokeWidth: 2,
                         color: kGreyColor,
                         backgroundColor: Colors.grey.shade100,
                       ),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:snaplink/constants/app_background.dart';
 import 'package:snaplink/controller/auth_service.dart';
+import 'package:snaplink/controller/model_classs.dart';
 import 'package:snaplink/generated/assets.dart';
 import 'package:snaplink/views/screens/dialogs/dialogs.dart';
 import 'package:snaplink/views/screens/home/functions_image.dart';
@@ -22,6 +24,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final _authService = AuthService();
   String? _userEmail;
   final mediaService = Get.put(MediaService());
+  final PagingController<int, MediaItem> pagingController = PagingController(
+    firstPageKey: 1,
+  );
 
   @override
   void initState() {
@@ -35,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _fetchUserMedia() async {
-    await mediaService.fetchUserMedia();
+    await mediaService.fetchUserMedia(page: pagingController.nextPageKey ?? 1);
   }
 
   @override
