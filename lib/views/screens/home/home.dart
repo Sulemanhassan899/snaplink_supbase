@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:snaplink/constants/app_background.dart';
 import 'package:snaplink/controller/auth_service.dart';
-import 'package:snaplink/controller/model_classs.dart';
 import 'package:snaplink/generated/assets.dart';
 import 'package:snaplink/views/screens/dialogs/dialogs.dart';
 import 'package:snaplink/views/screens/home/functions_image.dart';
@@ -23,24 +21,25 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _authService = AuthService();
   String? _userEmail;
-  final mediaService = Get.put(MediaService());
-  final PagingController<int, MediaItem> pagingController = PagingController(
-    firstPageKey: 1,
-  );
+  late final MediaService mediaService;
 
   @override
   void initState() {
     super.initState();
+    try {
+      mediaService = Get.find<MediaService>();
+    } catch (e) {
+      mediaService = Get.put(MediaService());
+    }
+
     _fetchUserMedia();
     initializeAppLinks();
   }
 
-  Future<void> initializeAppLinks() async {
-    // Implementation will go here
-  }
+  Future<void> initializeAppLinks() async {}
 
   Future<void> _fetchUserMedia() async {
-    await mediaService.fetchUserMedia(page: pagingController.nextPageKey ?? 1);
+    await mediaService.fetchUserMedia(page: 1);
   }
 
   @override
@@ -48,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: BackgroundImageContainer(
         imagePath: Assets.imagesBackground,
-
         child: AnimatedListView(
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
@@ -77,15 +75,20 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const Gap(30),
-            DoubleWhiteContainers2(
-              child: Obx(() {
-                if (mediaService.mediaItems.isNotEmpty) {
-                  return DataBody(mediaService: mediaService);
-                } else {
-                  return NoDataBody(mediaService: mediaService);
-                }
-              }),
-            ),
+            Obx(() {
+              // Check if we have any data (either from pagination or uploads)
+              final bool hasAnyData =
+                  (mediaService.mediaItems.isNotEmpty ||
+                      mediaService.uploads.isNotEmpty ||
+                      mediaService.hasData.value);
+
+              return DoubleWhiteContainers2(
+                child:
+                    hasAnyData
+                        ? DataBody(mediaService: mediaService)
+                        : NoDataBody(mediaService: mediaService),
+              );
+            }),
           ],
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:snaplink/constants/app_colors.dart';
 import 'package:svg_flutter/svg.dart';
+import 'package:shimmer/shimmer.dart';
 
 class CommonImageView extends StatelessWidget {
   // ignore_for_file: must_be_immutable
@@ -72,18 +73,15 @@ class CommonImageView extends StatelessWidget {
             fit: fit,
             imageUrl: url!,
             placeholder:
-                (context, url) => SizedBox(
-                  height: 23,
-                  width: 23,
-                  child: Center(
-                    child: SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: kGreyColor,
-                        backgroundColor: Colors.grey.shade100,
-                      ),
+                (context, url) => Shimmer.fromColors(
+                  baseColor: Colors.grey.shade300,
+                  highlightColor: Colors.grey.shade100,
+                  child: Container(
+                    height: height ?? 60,
+                    width: width ?? 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(radius ?? 0.0),
                     ),
                   ),
                 ),
@@ -173,17 +171,15 @@ class CommonImageViewWithBorder extends StatelessWidget {
           fit: fit,
           imageUrl: url!,
           placeholder:
-              (context, url) => SizedBox(
-                height: 23,
-                width: 23,
-                child: Center(
-                  child: SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      color: kGreyColor,
-                      backgroundColor: Colors.grey.shade100,
-                    ),
+              (context, url) => Shimmer.fromColors(
+                baseColor: Colors.grey.shade300,
+                highlightColor: Colors.grey.shade100,
+                child: Container(
+                  height: height ?? 60,
+                  width: width ?? 60,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(radius ?? 0.0),
                   ),
                 ),
               ),

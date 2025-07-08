@@ -36,6 +36,10 @@ dependencies:
   lottie:
   file_picker:
   infinite_scroll_pagination: ^4.1.0
+  share_plus: 
+  shimmer: 3.0.0
+  video_player: ^2.8.1
+
 
   
 

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:snaplink/constants/app_colors.dart';
 import 'package:snaplink/controller/model_classs.dart';
 import 'package:snaplink/generated/assets.dart';
+import 'package:snaplink/views/screens/bottomsheet/bottomsheet.dart';
 import 'package:snaplink/views/screens/home/functions_image.dart';
 import 'package:snaplink/views/widget/common_image_view_widget.dart';
 import 'package:snaplink/views/widget/custom_animated_column.dart';
@@ -14,6 +15,7 @@ import 'package:snaplink/views/widget/image_contianer.dart';
 import 'package:snaplink/views/widget/my_button_new.dart';
 import 'package:snaplink/views/widget/my_text_widget.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+
 
 class DataBody extends StatelessWidget {
   const DataBody({super.key, required this.mediaService});
@@ -58,13 +60,13 @@ class DataBody extends StatelessWidget {
             ),
           ],
         ),
-        const Gap(20),
+
         if (mediaService.isLoading.value && mediaService.mediaItems.isEmpty)
           const Center(child: CircularProgressIndicator())
         else if (mediaService.mediaItems.isEmpty)
           Center(
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(10.0),
               child: MyText(
                 text: "No images",
                 size: 16,
@@ -74,14 +76,13 @@ class DataBody extends StatelessWidget {
             ),
           )
         else
-       PaginatedMediaList(mediaService: mediaService),
+          PaginatedMediaList(mediaService: mediaService),
         const Gap(200),
       ],
     );
   }
 }
 
-//paginated list 
 class PaginatedMediaList extends StatelessWidget {
   final MediaService mediaService;
 
@@ -96,16 +97,8 @@ class PaginatedMediaList extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       separatorBuilder: (context, index) => const SizedBox(height: 0),
       builderDelegate: PagedChildBuilderDelegate<MediaItem>(
-        firstPageProgressIndicatorBuilder:
-            (context) =>
-                mediaService.isLoading.value
-                    ? const Center(child: CircularProgressIndicator())
-                    : const SizedBox.shrink(),
-        newPageProgressIndicatorBuilder:
-            (context) => const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Center(child: CircularProgressIndicator()),
-            ),
+        firstPageProgressIndicatorBuilder: (context) => const SizedBox.shrink(),
+        newPageProgressIndicatorBuilder: (context) => const SizedBox.shrink(),
         noMoreItemsIndicatorBuilder:
             (context) => Center(
               child: Padding(
@@ -135,9 +128,13 @@ class PaginatedMediaList extends StatelessWidget {
           final colors = [LightBlue, Lightyellow, LightGreen];
 
           Widget? dateHeader;
+          final previousItem =
+              index > 0
+                  ? mediaService.pagingController.itemList![index - 1]
+                  : null;
           if (index == 0 ||
               !_isSameDate(
-                mediaService.mediaItems[index - 1].uploadDateTime,
+                previousItem?.uploadDateTime ?? item.uploadDateTime,
                 item.uploadDateTime,
               )) {
             dateHeader = Padding(
@@ -171,7 +168,6 @@ class PaginatedMediaList extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           child: Bounce(
-                            duration: const Duration(milliseconds: 100),
                             onTap: () => mediaService.deleteMediaItem(item),
                             child: CommonImageView(
                               imagePath: Assets.imagesTrashRed,
@@ -181,15 +177,28 @@ class PaginatedMediaList extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: ImageContainer(
-                      color: colors[index % colors.length],
-                      imageUrl: item.url,
-                      thumbnailUrl: item.thumbnailUrl,
-                      isVideo: item.isVideo,
-                      date: item.uploadDate,
-                      size: "${item.fileSize}",
-                      onCopyUrl:
-                          () => mediaService.copyUrlToClipboard(item.url),
+                    child: Bounce(
+                      onTap: () {
+                        UploadBottomSheets.showPreviewBottomSheet(
+                          context,
+                          cancelUploadCallback:
+                              mediaService.cancelUploadCallback,
+                          mediaItem: item, // <--- Pass the tapped item directly
+                        );
+                      },
+                      child: ImageContainer(
+                        color: colors[index % colors.length],
+                        imageUrl: item.url,
+                        thumbnailUrl: item.thumbnailUrl,
+                        isVideo: item.isVideo,
+                        date: item.uploadDate,
+                        size: "${item.fileSize}",
+                        onShare:
+                            () => mediaService.shareToOtherPlatforms(item.url),
+
+                        onCopyUrl:
+                            () => mediaService.copyUrlToClipboard(item.url),
+                      ),
                     ),
                   ),
                 ),

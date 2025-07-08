@@ -193,12 +193,12 @@ class MyBorderButton extends StatelessWidget {
                   Padding(
                     padding:
                         isleft
-                            ? const EdgeInsets.only(left: 10.0)
+                            ? const EdgeInsets.only(left: 0)
                             : const EdgeInsets.only(right: 0),
-                    child: CommonImageView(imagePath: choiceIcon, height: 16),
+                    child: CommonImageView(imagePath: choiceIcon, height: 34),
                   ),
                 MyText(
-                  paddingLeft: hasicon ? 10 : 0,
+                  paddingLeft: hasicon ? 0 : 0,
                   text: buttonText,
                   fontFamily: AppFonts.Nunito,
                   size: 16,

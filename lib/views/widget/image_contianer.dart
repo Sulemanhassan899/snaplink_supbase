@@ -14,6 +14,8 @@ class ImageContainer extends StatelessWidget {
     required this.date,
     required this.size,
     required this.onCopyUrl,
+        required this.onShare,
+
     this.thumbnailUrl,
     required this.isVideo,
   });
@@ -25,6 +27,7 @@ class ImageContainer extends StatelessWidget {
   final String? thumbnailUrl;
   final bool isVideo;
   final VoidCallback onCopyUrl;
+   final VoidCallback onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +103,7 @@ class ImageContainer extends StatelessWidget {
               ),
 
               Bounce(
+                 onTap: onShare,
                 child: CommonImageView(
                   imagePath: Assets.imagesShareIcon,
                   height: 40,
