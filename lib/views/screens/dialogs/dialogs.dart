@@ -11,6 +11,7 @@ import 'package:snaplink/views/widget/custom_animated_column.dart';
 import 'package:snaplink/views/widget/custom_animated_row.dart';
 import 'package:snaplink/views/widget/my_button_new.dart';
 import 'package:snaplink/views/widget/my_text_widget.dart';
+import 'package:snaplink/views/screens/auth/notification_service.dart';
 
 class DialogHelper {
   static void RestPasswordDialog(BuildContext context) {
@@ -45,7 +46,7 @@ class DialogHelper {
                 const Gap(10),
                 MyText(
                   text: "Your account password has been changed successfully.",
-                  
+
                   size: 14,
                   color: kSubText4,
                   paddingBottom: 32,
@@ -56,6 +57,9 @@ class DialogHelper {
                   buttonText: 'Back to Login',
                   onTap: () {
                     Get.offAll(() => LoginScreen());
+                    NotificationService.showNotification(
+                      body: 'Your password has been changed successfully',
+                    );
                   },
                 ),
               ],
@@ -116,6 +120,9 @@ class DialogHelper {
                         onTap: () async {
                           await authService.signOut();
                           Get.offAll(() => const LoginScreen());
+                          NotificationService.showNotification(
+                            body: 'Logged out successfully',
+                          );
                         },
                       ),
                     ),
@@ -140,7 +147,4 @@ class DialogHelper {
       ),
     );
   }
-
-
-
 }

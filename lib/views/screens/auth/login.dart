@@ -18,6 +18,7 @@ import 'package:snaplink/views/widget/double_white_contianers.dart';
 import 'package:snaplink/views/widget/my_button_new.dart';
 import 'package:snaplink/views/widget/my_text_widget.dart';
 import 'package:snaplink/views/widget/my_textfeild.dart';
+import 'package:snaplink/views/screens/auth/notification_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -76,6 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await _authService.signInWithEmail(email, password);
       if (mounted) {
         Get.offAll(() => HomeScreen());
+        NotificationService.showNotification(body: 'Signed in successfully');
       }
     } catch (e) {
       if (mounted) {
@@ -84,6 +86,9 @@ class _LoginScreenState extends State<LoginScreen> {
           _passwordError = 'Incorrect password';
         });
         _formKey.currentState?.validate();
+        NotificationService.showNotification(
+          body: 'Incorrect email or password',
+        );
       }
     }
   }
@@ -250,9 +255,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           final response = await authService.googleSignIn();
                           if (response.user != null) {
                             Get.offAll(() => HomeScreen());
+                            NotificationService.showNotification(
+                              body: 'Signed in successfully',
+                            );
                           }
                         } catch (e) {
-                          Get.snackbar('Error', e.toString());
+                          NotificationService.showNotification(
+                            body: e.toString(),
+                          );
                         }
                       },
                       img: Assets.imagesGoogle,
