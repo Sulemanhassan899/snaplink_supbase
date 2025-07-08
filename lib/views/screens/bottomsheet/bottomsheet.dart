@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:gap/gap.dart';
 import 'package:lottie/lottie.dart';
 import 'package:bounce/bounce.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:snaplink/constants/app_colors.dart';
 import 'package:snaplink/controller/model_classs.dart';
 import 'package:snaplink/generated/assets.dart';
@@ -268,7 +267,6 @@ static void showPreviewBottomSheet(
   );
 }
 
-// Helper method to build video player
 static Widget _buildVideoPlayer(String videoUrl) {
   return Container(
     width: double.infinity,
@@ -313,7 +311,6 @@ static Widget _buildVideoPlayer(String videoUrl) {
 }
 
 
-// Custom Video Player Widget - implement based on your video player package
 class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
   final bool autoPlay;
