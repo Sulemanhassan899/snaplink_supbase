@@ -16,7 +16,6 @@ import 'package:snaplink/views/widget/my_text_widget.dart';
 import 'package:snaplink/views/widget/my_textfeild.dart';
 import 'package:video_player/video_player.dart';
 
-
 class UploadBottomSheets {
   static RxBool isUploadedBottomSheetOpen = false.obs;
 
@@ -102,214 +101,206 @@ class UploadBottomSheets {
     );
   }
 
-  
-static void showPreviewBottomSheet(
-  BuildContext context, {
-  required Rx<Function?> cancelUploadCallback,
-  required MediaItem mediaItem, // Add this parameter
-}) {
-  Get.bottomSheet(
-    isDismissible: true,
-    isScrollControlled: true,
-    SizedBox(
-      height: Get.height - 100,
-      child: DoubleWhiteContainers2(
-        child: AnimatedColumn(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Bounce(
-                  onTap: () {
-                    Get.back();
-                  },
-                  child: CommonImageView(
-                    imagePath: Assets.imagesCancel,
-                    height: 24,
+  static void showPreviewBottomSheet(
+    BuildContext context, {
+    required Rx<Function?> cancelUploadCallback,
+    required MediaItem mediaItem, // Add this parameter
+  }) {
+    Get.bottomSheet(
+      isDismissible: true,
+      isScrollControlled: true,
+      SizedBox(
+        height: Get.height - 100,
+        child: DoubleWhiteContainers2(
+          child: AnimatedColumn(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Bounce(
+                    onTap: () {
+                      Get.back();
+                    },
+                    child: CommonImageView(
+                      imagePath: Assets.imagesCancel,
+                      height: 24,
+                    ),
                   ),
-                ),
-                Gap(20),
-              ],
-            ),
-            // NO Obx needed for static preview of passed item
-            Builder(
-              builder: (context) {
-                final selectedItem = mediaItem;
+                  Gap(20),
+                ],
+              ),
+              // NO Obx needed for static preview of passed item
+              Builder(
+                builder: (context) {
+                  final selectedItem = mediaItem;
 
-                final urlController = TextEditingController(
-                  text: selectedItem.url,
-                );
+                  final urlController = TextEditingController(
+                    text: selectedItem.url,
+                  );
 
-                return Column(
-                  children: [
-                    // Video or Image Preview
-                    Container(
-                      height: 250,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.black12,
+                  return Column(
+                    children: [
+                      // Video or Image Preview
+                      Container(
+                        height: 250,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.black12,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child:
+                              selectedItem.isVideo == true
+                                  ? _buildVideoPlayer(selectedItem.url)
+                                  : CommonImageView(
+                                    radius: 12,
+                                    url: selectedItem.url,
+                                    height: 250,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                        ),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: selectedItem.isVideo == true
-                            ? _buildVideoPlayer(selectedItem.url)
-                            : CommonImageView(
-                                radius: 12,
-                                url: selectedItem.url,
-                                height: 250,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
+                      const Gap(12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              MyText(
+                                text: "Uploaded on: ",
+                                size: 12,
+                                color: kSubText,
                               ),
-                      ),
-                    ),
-                    const Gap(12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            MyText(
-                              text: "Uploaded on: ",
-                              size: 12,
-                              color: kSubText,
-                            ),
-                            MyText(
-                              text: selectedItem.uploadDate ?? "-",
-                              size: 12,
-                              weight: FontWeight.w600,
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            // Show media type indicator
-                            Icon(
-                              selectedItem.isVideo == true 
-                                  ? Icons.videocam 
-                                  : Icons.image,
-                              size: 12,
-                              color: kSubText,
-                            ),
-                            Gap(4),
-                            MyText(
-                              text: selectedItem.fileSize ?? "-",
-                              size: 12,
-                              color: kSubText,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const Gap(20),
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: MyText(
-                        text: "Link",
-                        size: 16,
-                        weight: FontWeight.w600,
-                      ),
-                    ),
-                    const Gap(10),
-                    MyTextField(
-                      controller: urlController,
-                      isReadOnly: true,
-                      radius: 12,
-                      filledColor: const Color(0xffF0F7FF),
-                      bordercolor: const Color(0xffD2E6FF),
-                    ),
-                    const Gap(20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: MyBorderButton(
-                            onTap: () {
-                              final mediaService = Get.find<MediaService>();
-                              mediaService.copyUrlToClipboard(
-                                selectedItem.url,
-                              );
-                            },
-                            buttonText: "Copy URL",
-                            hasicon: true,
-                            choiceIcon: Assets.imagesCopy,
-                            fontColor: kBlack,
-                            outlineColor: kBorderColor,
+                              MyText(
+                                text: selectedItem.uploadDate ?? "-",
+                                size: 12,
+                                weight: FontWeight.w600,
+                              ),
+                            ],
                           ),
-                        ),
-                        const Gap(10),
-                        Expanded(
-                          child: MyGradientButton(
-                            onTap: () {
-                              final mediaService = Get.find<MediaService>();
-                              mediaService.shareToOtherPlatforms(
-                                selectedItem.url,
-                              );
-                            },
-                            buttonText: "Share",
-                            hasicon: true,
-                            choiceIcon: Assets.imagesShare,
-                            fontColor: kWhite,
-                            backgroundColor: kPrimaryColor,
+                          Row(
+                            children: [
+                              // Show media type indicator
+                              Icon(
+                                selectedItem.isVideo == true
+                                    ? Icons.videocam
+                                    : Icons.image,
+                                size: 12,
+                                color: kSubText,
+                              ),
+                              Gap(4),
+                              MyText(
+                                text: selectedItem.fileSize ?? "-",
+                                size: 12,
+                                color: kSubText,
+                              ),
+                            ],
                           ),
+                        ],
+                      ),
+                      const Gap(20),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: MyText(
+                          text: "Link",
+                          size: 16,
+                          weight: FontWeight.w600,
                         ),
-                      ],
-                    ),
-                  ],
-                );
-              },
-            ),
-            Gap(30),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-static Widget _buildVideoPlayer(String videoUrl) {
-  return Container(
-    width: double.infinity,
-    height: 250,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(12),
-      color: Colors.black,
-    ),
-    child: Stack(
-      children: [
-        // Video player widget - you'll need to implement based on your video player package
-        // For example, if using video_player package:
-        VideoPlayerWidget(
-          videoUrl: videoUrl,
-          autoPlay: false,
-          showControls: true,
-        ),
-        // Play button overlay (optional)
-        Positioned(
-          top: 8,
-          right: 8,
-          child: Container(
-            padding: EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Icon(
-              Icons.play_arrow,
-              color: Colors.white,
-              size: 16,
-            ),
+                      ),
+                      const Gap(10),
+                      MyTextField(
+                        controller: urlController,
+                        isReadOnly: true,
+                        radius: 12,
+                        filledColor: const Color(0xffF0F7FF),
+                        bordercolor: const Color(0xffD2E6FF),
+                      ),
+                      const Gap(20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: MyBorderButton(
+                              onTap: () {
+                                final mediaService = Get.find<MediaService>();
+                                mediaService.copyUrlToClipboard(
+                                  selectedItem.url,
+                                );
+                              },
+                              buttonText: "Copy URL",
+                              hasicon: true,
+                              choiceIcon: Assets.imagesCopy,
+                              fontColor: kBlack,
+                              outlineColor: kBorderColor,
+                            ),
+                          ),
+                          const Gap(10),
+                          Expanded(
+                            child: MyGradientButton(
+                              onTap: () {
+                                final mediaService = Get.find<MediaService>();
+                                mediaService.shareToOtherPlatforms(
+                                  selectedItem.url,
+                                );
+                              },
+                              buttonText: "Share",
+                              hasicon: true,
+                              choiceIcon: Assets.imagesShare,
+                              fontColor: kWhite,
+                              backgroundColor: kPrimaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
+              Gap(30),
+            ],
           ),
         ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
+
+  static Widget _buildVideoPlayer(String videoUrl) {
+    return Container(
+      width: double.infinity,
+      height: 250,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.black,
+      ),
+      child: Stack(
+        children: [
+          // Video player widget - you'll need to implement based on your video player package
+          // For example, if using video_player package:
+          VideoPlayerWidget(
+            videoUrl: videoUrl,
+            autoPlay: false,
+            showControls: true,
+          ),
+          // Play button overlay (optional)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Icon(Icons.play_arrow, color: Colors.white, size: 16),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
-
-
-
-}
-
 
 class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
@@ -342,12 +333,12 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     try {
       _controller = VideoPlayerController.network(widget.videoUrl);
       await _controller.initialize();
-      
+
       if (mounted) {
         setState(() {
           _isInitialized = true;
         });
-        
+
         if (widget.autoPlay) {
           _controller.play();
           _isPlaying = true;
@@ -389,7 +380,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       );
     }
 
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: 250,
       child: Stack(
@@ -407,7 +398,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
               ),
             ),
           ),
-          
+
           // Controls overlay
           if (widget.showControls)
             Positioned.fill(
@@ -432,14 +423,14 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                 ),
               ),
             ),
-          
+
           // Video progress indicator (optional)
           if (widget.showControls)
             Positioned(
               bottom: 0,
               left: 0,
               right: 0,
-              child: Container(
+              child: SizedBox(
                 height: 4,
                 child: VideoProgressIndicator(
                   _controller,
@@ -457,7 +448,6 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     );
   }
 }
-
 
 class UploadedNewBottomSheet {
   static void show(
@@ -608,43 +598,45 @@ class UploadedNewBottomSheet {
       // Single media item - center
       return _buildSingleMediaItem(uploads[0], 250, double.infinity);
     } else if (itemCount >= 2 && itemCount <= 3) {
-      // 2-3 media items - center row
+      // 2-3 media items - center row, size 100
       return SizedBox(
         height: 200,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: uploads.take(3).map((item) {
-            final double size = itemCount == 2 ? 120 : 100;
-            return Container(
-              margin: EdgeInsets.symmetric(horizontal: 4),
-              width: size,
-              height: size,
-              child: _buildSingleMediaItem(item, size, size),
-            );
-          }).toList(),
+          children:
+              uploads.take(3).map((item) {
+                final double size = itemCount == 2 ? 120 : 90;
+                return Container(
+                  margin: EdgeInsets.symmetric(horizontal: 4),
+                  width: size,
+                  height: size,
+                  child: _buildSingleMediaItem(item, size, size),
+                );
+              }).toList(),
         ),
       );
-    } else if (itemCount >= 4 && itemCount <= 6) {
-      // 4-6 media items - two rows, second row main axis start
+    } else if (itemCount >= 4 && itemCount <= 5) {
+      // 4-5 media items - two rows, size 90
       final int firstRowCount = itemCount == 4 ? 2 : 3;
       final int secondRowCount = itemCount - firstRowCount;
-
+      const double size = 90;
       return SizedBox(
         height: 220,
         child: Column(
           children: [
             // First row - center
             SizedBox(
-              height: 100,
+              height: size,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: uploads.take(firstRowCount).map((item) {
-                  return Container(
-                    margin: EdgeInsets.symmetric(horizontal: 4),
-                    width: 80,
-                    child: _buildSingleMediaItem(item, 80, 80),
-                  );
-                }).toList(),
+                children:
+                    uploads.take(firstRowCount).map((item) {
+                      return Container(
+                        margin: EdgeInsets.symmetric(horizontal: 4),
+                        width: size,
+                        child: _buildSingleMediaItem(item, size, size),
+                      );
+                    }).toList(),
               ),
             ),
 
@@ -652,16 +644,66 @@ class UploadedNewBottomSheet {
 
             // Second row - start alignment
             SizedBox(
-              height: 100,
+              height: size,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: uploads.skip(firstRowCount).take(secondRowCount).map((item) {
-                  return Container(
-                    margin: EdgeInsets.symmetric(horizontal: 4),
-                    width: 80,
-                    child: _buildSingleMediaItem(item, 80, 80),
-                  );
-                }).toList(),
+                children:
+                    uploads.skip(firstRowCount).take(secondRowCount).map((
+                      item,
+                    ) {
+                      return Container(
+                        margin: EdgeInsets.symmetric(horizontal: 4),
+                        width: size,
+                        child: _buildSingleMediaItem(item, size, size),
+                      );
+                    }).toList(),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (itemCount == 6) {
+      // 6 media items - two rows, size 100
+      const int firstRowCount = 3;
+      const int secondRowCount = 3;
+      const double size = 100;
+      return SizedBox(
+        height: 220,
+        child: Column(
+          children: [
+            // First row - center
+            SizedBox(
+              height: size,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children:
+                    uploads.take(firstRowCount).map((item) {
+                      return Container(
+                        margin: EdgeInsets.symmetric(horizontal: 4),
+                        width: size,
+                        child: _buildSingleMediaItem(item, size, size),
+                      );
+                    }).toList(),
+              ),
+            ),
+
+            Gap(8),
+
+            // Second row - start alignment
+            SizedBox(
+              height: size,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children:
+                    uploads.skip(firstRowCount).take(secondRowCount).map((
+                      item,
+                    ) {
+                      return Container(
+                        margin: EdgeInsets.symmetric(horizontal: 4),
+                        width: size,
+                        child: _buildSingleMediaItem(item, size, size),
+                      );
+                    }).toList(),
               ),
             ),
           ],
@@ -670,23 +712,24 @@ class UploadedNewBottomSheet {
     } else {
       // More than 6 media items - show first 5 and +count on 6th
       final int remainingCount = itemCount - 5;
-
+      const double size = 80;
       return SizedBox(
         height: 220,
         child: Column(
           children: [
             // First row - 3 media items
             SizedBox(
-              height: 100,
+              height: size,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: uploads.take(3).map((item) {
-                  return Container(
-                    margin: EdgeInsets.symmetric(horizontal: 4),
-                    width: 80,
-                    child: _buildSingleMediaItem(item, 80, 80),
-                  );
-                }).toList(),
+                children:
+                    uploads.take(3).map((item) {
+                      return Container(
+                        margin: EdgeInsets.symmetric(horizontal: 4),
+                        width: size,
+                        child: _buildSingleMediaItem(item, size, size),
+                      );
+                    }).toList(),
               ),
             ),
 
@@ -694,31 +737,31 @@ class UploadedNewBottomSheet {
 
             // Second row - 2 media items + count overlay
             SizedBox(
-              height: 100,
+              height: size,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   // 4th media item
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 4),
-                    width: 80,
-                    child: _buildSingleMediaItem(uploads[3], 80, 80),
+                    width: size,
+                    child: _buildSingleMediaItem(uploads[3], size, size),
                   ),
 
                   // 5th media item
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 4),
-                    width: 80,
-                    child: _buildSingleMediaItem(uploads[4], 80, 80),
+                    width: size,
+                    child: _buildSingleMediaItem(uploads[4], size, size),
                   ),
 
                   // 6th media item with overlay
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 4),
-                    width: 80,
+                    width: size,
                     child: Stack(
                       children: [
-                        _buildSingleMediaItem(uploads[5], 80, 80),
+                        _buildSingleMediaItem(uploads[5], size, size),
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.6),
@@ -746,107 +789,39 @@ class UploadedNewBottomSheet {
   }
 
   // New helper method to build single media item (image or video)
-  static Widget _buildSingleMediaItem(MediaItem item, double height, double width) {
+  static Widget _buildSingleMediaItem(
+    MediaItem item,
+    double height,
+    double width,
+  ) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
-      child: Container(
+      child: SizedBox(
         height: height,
         width: width,
-        child: item.isVideo == true
-            ? _buildVideoThumbnail(item, height, width)
-            : CommonImageView(
-                radius: 12,
-                url: item.url,
-                height: height,
-                width: width,
-                fit: BoxFit.cover,
-              ),
+        child:
+            item.isVideo == true
+                ? _buildVideoThumbnail(item, height, width)
+                : CommonImageView(
+                  radius: 12,
+                  url: item.url,
+                  height: height,
+                  width: width,
+                  fit: BoxFit.cover,
+                ),
       ),
     );
   }
 
-  // Helper method to build video thumbnail with play icon
-  static Widget _buildVideoThumbnail2(MediaItem item, double height, double width) {
-    return Container(
-      height: height,
-      width: width,
-      child: Stack(
-        children: [
-          // Use thumbnail URL if available, otherwise use video URL
-          CommonImageView(
-            radius: 12,
-            url: item.thumbnailUrl ?? item.url,
-            height: height,
-            width: width,
-            fit: BoxFit.cover,
-          ),
-          
-          // Dark overlay for video indication
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          
-          // Play icon overlay
-          Positioned.fill(
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.all(height > 100 ? 8 : 4),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.play_arrow,
-                  color: Colors.white,
-                  size: height > 100 ? 24 : 16,
-                ),
-              ),
-            ),
-          ),
-          
-          // Video duration indicator (if available)
-          if (item.fileType == 'mp4' || item.fileType == 'mov')
-            Positioned(
-              bottom: 4,
-              right: 4,
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.videocam,
-                      color: Colors.white,
-                      size: 8,
-                    ),
-                    Gap(2),
-                    MyText(
-                      text: "VIDEO",
-                      size: 8,
-                      color: Colors.white,
-                      weight: FontWeight.w600,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-static Widget _buildVideoThumbnail(MediaItem item, double height, double width) {
+  static Widget _buildVideoThumbnail(
+    MediaItem item,
+    double height,
+    double width,
+  ) {
     // Create a video player controller to manage playback state
-    VideoPlayerController? _controller;
+    VideoPlayerController? controller;
 
-    return Container(
+    return SizedBox(
       height: height,
       width: width,
       child: Stack(
@@ -859,7 +834,7 @@ static Widget _buildVideoThumbnail(MediaItem item, double height, double width) 
             width: width,
             fit: BoxFit.cover,
           ),
-          
+
           // Dark overlay for video indication
           Container(
             decoration: BoxDecoration(
@@ -867,7 +842,7 @@ static Widget _buildVideoThumbnail(MediaItem item, double height, double width) 
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          
+
           // Play icon overlay
           Positioned.fill(
             child: Center(
@@ -885,9 +860,9 @@ static Widget _buildVideoThumbnail(MediaItem item, double height, double width) 
                   ),
                   onPressed: () async {
                     // Initialize video player controller and play
-                    _controller = VideoPlayerController.network(item.url)
+                    controller = VideoPlayerController.network(item.url)
                       ..initialize().then((_) {
-                        _controller!.play();
+                        controller!.play();
                       });
                   },
                 ),
@@ -909,11 +884,7 @@ static Widget _buildVideoThumbnail(MediaItem item, double height, double width) 
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.videocam,
-                      color: Colors.white,
-                      size: 8,
-                    ),
+                    Icon(Icons.videocam, color: Colors.white, size: 8),
                     Gap(2),
                     MyText(
                       text: "VIDEO",
@@ -929,7 +900,6 @@ static Widget _buildVideoThumbnail(MediaItem item, double height, double width) 
       ),
     );
   }
-
 
   static Widget _buildUploadDetails(List<MediaItem> uploads) {
     final MediaItem firstItem = uploads.first;
@@ -953,11 +923,7 @@ static Widget _buildVideoThumbnail(MediaItem item, double height, double width) 
             Row(
               children: [
                 // Media type indicator
-                Icon(
-                  _getMediaTypeIcon(uploads),
-                  size: 14,
-                  color: kSubText,
-                ),
+                MyText(text: "File Size: ", size: 14, color: kSubText),
                 Gap(4),
                 MyText(
                   text: _getTotalFileSize(uploads),
@@ -977,7 +943,7 @@ static Widget _buildVideoThumbnail(MediaItem item, double height, double width) 
   static IconData _getMediaTypeIcon(List<MediaItem> uploads) {
     final bool hasVideo = uploads.any((item) => item.isVideo == true);
     final bool hasImage = uploads.any((item) => item.isVideo != true);
-    
+
     if (hasVideo && hasImage) {
       return Icons.perm_media; // Mixed media
     } else if (hasVideo) {

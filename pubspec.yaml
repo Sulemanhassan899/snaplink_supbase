@@ -39,8 +39,6 @@ dependencies:
   share_plus: 
   shimmer: 3.0.0
   video_player: ^2.8.1
-
-
   
 
 dev_dependencies:

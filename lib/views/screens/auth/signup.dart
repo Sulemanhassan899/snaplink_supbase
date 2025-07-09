@@ -31,8 +31,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final FocusNode _focusNodeFullName = FocusNode();
   final FocusNode _focusNodePassword = FocusNode();
   final FocusNode _focusNodeConfrimPassword = FocusNode();
-  final FocusNode _focusNodePhone = FocusNode();
-  final _phoneController = TextEditingController();
   final validators = AuthValidations();
   final _authService = AuthService();
   final _emailController = TextEditingController();
@@ -144,8 +142,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _focusNodePhone.dispose();
-    _phoneController.dispose();
     _focusNodeFullName.dispose();
     _fullnameController.dispose();
     super.dispose();
@@ -231,25 +227,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               return null;
                             },
                           ),
-                          MyTextField(
-                            hint: "Phone Number",
-                            marginBottom: 12,
-                            controller: _phoneController,
-                            focusNode: _focusNodePhone,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your phone number';
-                              }
-                              if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
-                                return 'Phone number must contain only digits';
-                              }
-                              return null;
-                            },
-                            keyboardType:
-                                TextInputType
-                                    .number, // 👈 Keyboard will only show numbers
-                          ),
-
                           MyTextField(
                             hint: "Email",
                             marginBottom: 12,

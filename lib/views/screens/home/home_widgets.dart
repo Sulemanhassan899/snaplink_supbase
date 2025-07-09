@@ -16,7 +16,6 @@ import 'package:snaplink/views/widget/my_button_new.dart';
 import 'package:snaplink/views/widget/my_text_widget.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
-
 class DataBody extends StatelessWidget {
   const DataBody({super.key, required this.mediaService});
 
@@ -99,19 +98,7 @@ class PaginatedMediaList extends StatelessWidget {
       builderDelegate: PagedChildBuilderDelegate<MediaItem>(
         firstPageProgressIndicatorBuilder: (context) => const SizedBox.shrink(),
         newPageProgressIndicatorBuilder: (context) => const SizedBox.shrink(),
-        noMoreItemsIndicatorBuilder:
-            (context) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: MyText(
-                  text: "Limit reached",
-                  size: 14,
-                  color: kSubText,
-                  textAlign: TextAlign.center,
-                  weight: FontWeight.w400,
-                ),
-              ),
-            ),
+
         noItemsFoundIndicatorBuilder:
             (context) => Center(
               child: Padding(
