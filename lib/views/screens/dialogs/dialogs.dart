@@ -70,6 +70,8 @@ class DialogHelper {
     );
   }
 
+
+
   static void LogoutDialog(BuildContext context) {
     final authService = AuthService();
     Get.dialog(

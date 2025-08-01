@@ -42,51 +42,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isPasswordObscured = true;
   bool _isConfrimPasswordObscured = true;
 
-  void signup2() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
-
-    if (email.isEmpty && password.isEmpty && confirmPassword.isEmpty) {
-      setState(() {});
-      _formKey.currentState?.validate();
-      return;
-    } else if (email.isEmpty) {
-      setState(() {});
-      _formKey.currentState?.validate();
-      return;
-    } else if (password.isEmpty) {
-      setState(() {});
-      _formKey.currentState?.validate();
-      return;
-    } else if (confirmPassword.isEmpty) {
-      setState(() {});
-      _formKey.currentState?.validate();
-      return;
-    }
-
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) return;
-
-    if (password != confirmPassword) {
-      setState(() {});
-      _formKey.currentState?.validate();
-      return;
-    }
-
-    try {
-      await _authService.signUpWithEmail(email, password);
-      if (mounted) {
-        Get.offAll(() => HomeScreen());
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {});
-        _formKey.currentState?.validate();
-      }
-    }
-  }
-
+ 
   void signup() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -271,8 +227,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
 
                           MyTextField(
-                            controller: _confirmPasswordController,
+                           
                             hint: "Confirm Password",
+                             controller: _confirmPasswordController,
                             isObSecure:
                                 _isConfrimPasswordObscured, // Toggle visibility
                             suffix: Bounce(
@@ -368,7 +325,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   Get.offAll(() => HomeScreen());
                                 }
                               } catch (e) {
-                                Get.snackbar('Error', e.toString());
                               }
                             },
                             img: Assets.imagesGoogle,

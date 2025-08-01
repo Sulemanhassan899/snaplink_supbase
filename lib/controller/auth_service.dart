@@ -65,13 +65,6 @@ class AuthService {
     }
   }
 
-  Future<void> signUpWithEmail2(String email, String password) async {
-    final response = await _supabase.auth.signUp(
-      email: email,
-      password: password,
-    );
-  }
-
   Future<User?> signUpWithEmail(String email, String password) async {
     final response = await _supabase.auth.signUp(
       email: email,

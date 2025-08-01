@@ -240,11 +240,11 @@ class MediaService extends GetxController {
       if (Get.isBottomSheetOpen ?? false) Get.back();
       isUploading.value = false;
       print(e);
-      Get.snackbar(
-        'Error',
-        'Failed to upload media: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Get.snackbar(
+      //   'Error',
+      //   'Failed to upload media: $e',
+      //   snackPosition: SnackPosition.BOTTOM,
+      // );
     }
   }
 
@@ -279,11 +279,11 @@ class MediaService extends GetxController {
     } catch (e) {
       print('Error in _handleSingleImage: $e');
       if (Get.isBottomSheetOpen ?? false) Get.back();
-      Get.snackbar(
-        'Error',
-        'Failed to upload image: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Get.snackbar(
+      //   'Error',
+      //   'Failed to upload image: $e',
+      //   snackPosition: SnackPosition.BOTTOM,
+      // );
       return null;
     } finally {
       isLoading.value = false;
@@ -353,11 +353,11 @@ class MediaService extends GetxController {
     } catch (e) {
       print('Error in _handleSingleVideo: $e');
       if (Get.isBottomSheetOpen ?? false) Get.back();
-      Get.snackbar(
-        'Error',
-        'Failed to upload video: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Get.snackbar(
+      //   'Error',
+      //   'Failed to upload video: $e',
+      //   snackPosition: SnackPosition.BOTTOM,
+      // );
       return null;
     } finally {
       isLoading.value = false;
@@ -690,18 +690,18 @@ class MediaService extends GetxController {
       pagingController.refresh();
 
       isLoading.value = false;
-      Get.snackbar(
-        'Success',
-        'Media deleted successfully',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Get.snackbar(
+      //   'Success',
+      //   'Media deleted successfully',
+      //   snackPosition: SnackPosition.BOTTOM,
+      // );
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar(
-        'Error',
-        'Failed to delete media: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Get.snackbar(
+      //   'Error',
+      //   'Failed to delete media: $e',
+      //   snackPosition: SnackPosition.BOTTOM,
+      // );
     }
   }
 
@@ -717,18 +717,18 @@ class MediaService extends GetxController {
     try {
       await Clipboard.setData(ClipboardData(text: url));
 
-      Get.snackbar(
-        'Success',
-        'URL copied to clipboard',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Get.snackbar(
+      //   'Success',
+      //   'URL copied to clipboard',
+      //   snackPosition: SnackPosition.BOTTOM,
+      // );
     } catch (e) {
       print('Error copying to clipboard: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to copy URL: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Get.snackbar(
+      //   'Error',
+      //   'Failed to copy URL: $e',
+      //   snackPosition: SnackPosition.BOTTOM,
+      // );
     }
   }
 
@@ -740,11 +740,11 @@ class MediaService extends GetxController {
       );
     } catch (e) {
       print('Error sharing: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to share: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Get.snackbar(
+      //   'Error',
+      //   'Failed to share: $e',
+      //   snackPosition: SnackPosition.BOTTOM,
+      // );
     }
   }
 }

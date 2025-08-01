@@ -49,11 +49,6 @@ class UploadBottomSheets {
                       cancelUploadCallback.value
                           ?.call(); // Cancel actual upload
                       isUploading.value = false;
-                      Get.snackbar(
-                        'Cancelled',
-                        'Upload is canceled',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
                     },
                     child: CommonImageView(
                       imagePath: Assets.imagesCancel,
@@ -508,45 +503,47 @@ class UploadedNewBottomSheet {
                       _buildLinksSection(uploads),
 
                       Gap(20),
-
-                      // Action Buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: MyBorderButton(
-                              onTap: () {
-                                final mediaService = Get.find<MediaService>();
-                                mediaService.copyUrlToClipboard(
-                                  uploads.first.url,
-                                );
-                                if (onCopyUrl != null) onCopyUrl();
-                              },
-                              buttonText: "Copy URL",
-                              hasicon: true,
-                              choiceIcon: Assets.imagesCopy,
-                              fontColor: kBlack,
-                              outlineColor: kBorderColor,
-                            ),
-                          ),
-                          Gap(10),
-                          Expanded(
-                            child: MyGradientButton(
-                              onTap: () {
-                                final mediaService = Get.find<MediaService>();
-                                mediaService.shareToOtherPlatforms(
-                                  uploads.first.url,
-                                );
-                                if (onShare != null) onShare();
-                              },
-                              buttonText: "Share",
-                              hasicon: true,
-                              choiceIcon: Assets.imagesShare,
-                              fontColor: kWhite,
-                              backgroundColor: kPrimaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
+                      uploads.length == 1
+                          ? Row(
+                            children: [
+                              Expanded(
+                                child: MyBorderButton(
+                                  onTap: () {
+                                    final mediaService =
+                                        Get.find<MediaService>();
+                                    mediaService.copyUrlToClipboard(
+                                      uploads.first.url,
+                                    );
+                                    if (onCopyUrl != null) onCopyUrl();
+                                  },
+                                  buttonText: "Copy URL",
+                                  hasicon: true,
+                                  choiceIcon: Assets.imagesCopy,
+                                  fontColor: kBlack,
+                                  outlineColor: kBorderColor,
+                                ),
+                              ),
+                              Gap(10),
+                              Expanded(
+                                child: MyGradientButton(
+                                  onTap: () {
+                                    final mediaService =
+                                        Get.find<MediaService>();
+                                    mediaService.shareToOtherPlatforms(
+                                      uploads.first.url,
+                                    );
+                                    if (onShare != null) onShare();
+                                  },
+                                  buttonText: "Share",
+                                  hasicon: true,
+                                  choiceIcon: Assets.imagesShare,
+                                  fontColor: kWhite,
+                                  backgroundColor: kPrimaryColor,
+                                ),
+                              ),
+                            ],
+                          )
+                          : const SizedBox.shrink(),
                     ],
                   ),
                 ),
@@ -567,16 +564,57 @@ class UploadedNewBottomSheet {
         ...uploads.asMap().entries.map((entry) {
           int index = entry.key;
           MediaItem item = entry.value;
+          final colors = [LightBlue, Lightyellow, LightGreen];
 
           return Column(
             children: [
-              MyTextField(
-                controller: TextEditingController(text: item.url),
-                isReadOnly: true,
-                marginBottom: 0,
-                radius: 12,
-                filledColor: const Color(0xffF0F7FF),
-                bordercolor: const Color(0xffD2E6FF),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                decoration: BoxDecoration(
+                  color: colors[index % colors.length],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  spacing: 6,
+                  children: [
+                    Expanded(
+                      child: MyTextField(
+                        controller: TextEditingController(text: item.url),
+                        isReadOnly: true,
+                        marginBottom: 0,
+                        radius: 12,
+                        filledColor: kWhite,
+                        bordercolor: kTransperentColor,
+                      ),
+                    ),
+                    if (uploads.length > 1)
+                      Row(
+                        spacing: 6,
+                        children: [
+                          Bounce(
+                            onTap: () {
+                              final mediaService = Get.find<MediaService>();
+                              mediaService.copyUrlToClipboard(item.url);
+                            },
+                            child: CommonImageView(
+                              imagePath: Assets.imagesCopy,
+                              height: 40,
+                            ),
+                          ),
+                          Bounce(
+                            onTap: () {
+                              final mediaService = Get.find<MediaService>();
+                              mediaService.shareToOtherPlatforms(item.url);
+                            },
+                            child: CommonImageView(
+                              imagePath: Assets.imagesShareIcon,
+                              height: 40,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
               ),
 
               // Add gap between text fields (except after the last one)

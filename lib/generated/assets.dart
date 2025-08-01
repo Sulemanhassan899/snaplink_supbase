@@ -50,34 +50,6 @@ class Assets {
   /// assets/images/arrow_back.png
   static const String imagesArrowBack = "assets/images/arrow_back.png";
 
-  /// Assets for imagesArrowDown
-  /// assets/images/arrow_down.png
-  static const String imagesArrowDown = "assets/images/arrow_down.png";
-
-  /// Assets for imagesArrowDownDropdown
-  /// assets/images/arrow-down_dropdown.png
-  static const String imagesArrowDownDropdown = "assets/images/arrow-down_dropdown.png";
-
-  /// Assets for imagesArrowDownGrey
-  /// assets/images/arrow-down_grey.png
-  static const String imagesArrowDownGrey = "assets/images/arrow-down_grey.png";
-
-  /// Assets for imagesArrowRdownGrey
-  /// assets/images/arrow-rdown_grey.png
-  static const String imagesArrowRdownGrey = "assets/images/arrow-rdown_grey.png";
-
-  /// Assets for imagesArrowRight
-  /// assets/images/arrow-right.png
-  static const String imagesArrowRight = "assets/images/arrow-right.png";
-
-  /// Assets for imagesArrowRightGrey
-  /// assets/images/arrow_right_grey.png
-  static const String imagesArrowRightGrey = "assets/images/arrow_right_grey.png";
-
-  /// Assets for imagesArrowRightWhite
-  /// assets/images/arrow_right_white.png
-  static const String imagesArrowRightWhite = "assets/images/arrow_right_white.png";
-
   /// Assets for imagesBackWhite
   /// assets/images/back_white.png
   static const String imagesBackWhite = "assets/images/back_white.png";

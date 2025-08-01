@@ -5,12 +5,15 @@ import 'package:get/get.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:intl/intl.dart';
 import 'package:snaplink/constants/app_colors.dart';
+import 'package:snaplink/constants/app_sizes.dart';
 import 'package:snaplink/controller/model_classs.dart';
 import 'package:snaplink/generated/assets.dart';
+import 'package:snaplink/views/screens/auth/notification_service.dart';
 import 'package:snaplink/views/screens/bottomsheet/bottomsheet.dart';
 import 'package:snaplink/views/screens/home/functions_image.dart';
 import 'package:snaplink/views/widget/common_image_view_widget.dart';
 import 'package:snaplink/views/widget/custom_animated_column.dart';
+import 'package:snaplink/views/widget/custom_animated_row.dart';
 import 'package:snaplink/views/widget/image_contianer.dart';
 import 'package:snaplink/views/widget/my_button_new.dart';
 import 'package:snaplink/views/widget/my_text_widget.dart';
@@ -155,7 +158,85 @@ class PaginatedMediaList extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           child: Bounce(
-                            onTap: () => mediaService.deleteMediaItem(item),
+                            // onTap: () => mediaService.deleteMediaItem(item),
+                            onTap: () {
+                              Get.dialog(
+                                AnimatedColumn(
+                                  animationDuration: 200,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      margin: AppSizes.DEFAULT,
+                                      padding: const EdgeInsets.all(24),
+                                      decoration: BoxDecoration(
+                                        color: kWhite,
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(16),
+                                        ),
+                                      ),
+                                      child: AnimatedColumn(
+                                        children: [
+                                          CommonImageView(
+                                            imagePath: Assets.imagesLogout,
+                                            height: 60,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          MyText(
+                                            text:
+                                                "Are you sure you want to Delete",
+                                            size: 24,
+                                            color: kBlack,
+                                            weight: FontWeight.w700,
+                                            textAlign: TextAlign.center,
+                                          ),
+
+                                          AnimatedRow(
+                                            animationDuration: 200,
+                                            spacing: 10,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Expanded(
+                                                child: MyButton(
+                                                  backgroundColor: kredColor,
+                                                  buttonText: 'Yes',
+                                                  fontColor: kWhite,
+                                                  onTap: () async {
+                                                    mediaService
+                                                        .deleteMediaItem(item);
+                                                    Get.back();
+                                                    NotificationService.showNotification(
+                                                      body:
+                                                          'Deleted successfully',
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: MyGradientButton(
+                                                  hasgrad: true,
+                                                  gradient:
+                                                      kChatBackgroundGradeintColor,
+                                                  buttonText: 'Not now',
+                                                  backgroundColor: kWhite,
+
+                                                  onTap: () {
+                                                    Get.back();
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                             child: CommonImageView(
                               imagePath: Assets.imagesTrashRed,
                               height: 40,
