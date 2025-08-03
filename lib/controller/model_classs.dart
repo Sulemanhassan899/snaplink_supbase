@@ -11,7 +11,6 @@ class MediaItem {
   final String fileType;
   final bool isVideo;
   final String? thumbnailUrl;
-  // Add a DateTime property for easy comparison
   final DateTime uploadDateTime;
 
   MediaItem({

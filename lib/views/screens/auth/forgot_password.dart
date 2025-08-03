@@ -10,8 +10,10 @@ import 'package:snaplink/constants/app_background.dart';
 import 'package:snaplink/constants/app_colors.dart';
 import 'package:snaplink/controller/auth_service.dart';
 import 'package:snaplink/controller/auth_validtions.dart';
+import 'package:snaplink/controller/connection_check.dart';
 import 'package:snaplink/generated/assets.dart';
 import 'package:snaplink/views/screens/auth/login.dart';
+import 'package:snaplink/views/screens/auth/otp.dart';
 import 'package:snaplink/views/widget/common_image_view_widget.dart';
 import 'package:snaplink/views/widget/custom_animated_column.dart';
 import 'package:snaplink/views/widget/double_white_contianers.dart';
@@ -34,36 +36,53 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _emailError;
   bool _isButtonDisabled = false;
+  bool _isLoading = false; // Loading state for Send button
   Timer? _timer;
   int _remainingTime = 30;
 
+ 
   void resetPassword() async {
+    // Check internet connection first
+    if (!await ConnectionCheck.isInternetAvailable()) {
+      ConnectionCheck.showNoInternetDialog(context, "to reset password");
+      return;
+    }
+
+    if (_isLoading || _isButtonDisabled) return;
+
     setState(() {
       _emailError = null;
+      _isLoading = true; // Start loading
     });
 
-    final email = _emailController.text.trim();
-
-    if (email.isEmpty) {
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) {
       setState(() {
-        _emailError = 'Please enter your email';
+        _isLoading = false; // Stop loading
       });
       return;
     }
 
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) return;
+    final email = _emailController.text.trim();
 
     try {
       _disableButton();
-      await _authService.requestresetPassword(email);
-      await _authService.configDeeplink();
+      await _authService.forgotPassword(email); // Updated to use forgotPassword
       _startCountdown();
+      setState(() {
+        _isLoading = false; // Stop loading
+      });
+
+      // Navigate to OTP screen with email
+      if (mounted) {
+        Get.to(() => OtpScreen(email: email));
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
           _emailError = 'Please try again.';
           _isButtonDisabled = false;
+          _isLoading = false;
         });
         _formKey.currentState?.validate();
       }
@@ -153,7 +172,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     MyText(
                       text:
-                          "Enter your email address and we'll\nsend you a link to reset your password.",
+                          "Enter your email address and we'll\nsend you an OTP to reset your password.",
                       size: 14,
                       color: kSubText,
                       textAlign: TextAlign.center,
@@ -175,20 +194,44 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           if (_emailError != null) return _emailError;
                           return null;
                         },
-                        errorText: _emailError,
                       ),
                     ),
-                    MyGradientButton(
-                      onTap: () {
-                        if (!_isButtonDisabled) {
-                          resetPassword(); // Trigger password reset if button is enabled
-                        }
-                      },
-                      buttonText:
-                          _isButtonDisabled
-                              ? "Please wait for $_remainingTime"
-                              : "Send",
-                    ),
+                    // Modified Send Button with Loading State
+                    _isLoading
+                        ? Container(
+                          height: 50, // Match your button height
+                          width: double.infinity,
+                          margin: EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.blue,
+                                Colors.purple,
+                              ], // Use your gradient colors
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        )
+                        : MyGradientButton(
+                          onTap: () {
+                            // Always call resetPassword to handle validation
+                            resetPassword();
+                          },
+                          buttonText:
+                              _isButtonDisabled
+                                  ? "Please wait for $_remainingTime"
+                                  : "Send OTP",
+                        ),
                     Gap(24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

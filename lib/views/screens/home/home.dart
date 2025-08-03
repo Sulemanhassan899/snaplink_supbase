@@ -1,104 +1,6 @@
-// import 'package:flutter/material.dart';
-// import 'package:gap/gap.dart';
-// import 'package:get/get.dart';
-// import 'package:snaplink/constants/app_background.dart';
-// import 'package:snaplink/controller/auth_service.dart';
-// import 'package:snaplink/generated/assets.dart';
-// import 'package:snaplink/views/screens/dialogs/dialogs.dart';
-// import 'package:snaplink/views/screens/home/functions_image.dart';
-// import 'package:snaplink/views/screens/home/home_widgets.dart';
-// import 'package:snaplink/views/widget/common_image_view_widget.dart';
-// import 'package:snaplink/views/widget/custom_animated_column.dart';
-// import 'package:snaplink/views/widget/double_white_contianers.dart';
-
-// class HomeScreen extends StatefulWidget {
-//   const HomeScreen({super.key});
-
-//   @override
-//   State<HomeScreen> createState() => _HomeScreenState();
-// }
-
-// class _HomeScreenState extends State<HomeScreen> {
-//   final _authService = AuthService();
-//   String? _userEmail;
-//   late final MediaService mediaService;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     try {
-//       mediaService = Get.find<MediaService>();
-//     } catch (e) {
-//       mediaService = Get.put(MediaService());
-//     }
-
-//     _fetchUserMedia();
-//     initializeAppLinks();
-//   }
-
-//   Future<void> initializeAppLinks() async {}
-
-//   Future<void> _fetchUserMedia() async {
-//     await mediaService.fetchUserMedia(page: 1);
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: BackgroundImageContainer(
-//         imagePath: Assets.imagesBackground,
-//         child: AnimatedListView(
-//           physics: const NeverScrollableScrollPhysics(),
-//           shrinkWrap: true,
-//           children: [
-//             const Gap(20),
-//             GestureDetector(
-//               onTap: () async {
-//                 DialogHelper.LogoutDialog(context);
-//               },
-//               child: Row(
-//                 mainAxisAlignment: MainAxisAlignment.end,
-//                 children: [
-//                   CommonImageView(
-//                     imagePath: Assets.imagesLogoutButton,
-//                     height: 32,
-//                   ),
-//                   const Gap(20),
-//                 ],
-//               ),
-//             ),
-//             const SizedBox(height: 16),
-//             Center(
-//               child: CommonImageView(
-//                 imagePath: Assets.imagesLogoSpell,
-//                 height: 50,
-//               ),
-//             ),
-//             const Gap(30),
-//             Obx(() {
-//               // Check if we have any data (either from pagination or uploads)
-//               final bool hasAnyData =
-//                   (mediaService.mediaItems.isNotEmpty ||
-//                       mediaService.uploads.isNotEmpty ||
-//                       mediaService.hasData.value);
-
-//               return DoubleWhiteContainers2(
-//                 child:
-//                     hasAnyData
-//                         ? DataBody(mediaService: mediaService)
-//                         : NoDataBody(mediaService: mediaService),
-//               );
-//             }),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:snaplink/constants/app_background.dart';
 import 'package:snaplink/controller/auth_service.dart';
 import 'package:snaplink/generated/assets.dart';
@@ -120,7 +22,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final _authService = AuthService();
   String? _userEmail;
   late final MediaService mediaService;
-  bool _isLoading = true;
 
   @override
   void initState() {
@@ -130,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       mediaService = Get.put(MediaService());
     }
+
     _fetchUserMedia();
     initializeAppLinks();
   }
@@ -137,74 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> initializeAppLinks() async {}
 
   Future<void> _fetchUserMedia() async {
-    setState(() {
-      _isLoading = true;
-    });
     await mediaService.fetchUserMedia(page: 1);
-    setState(() {
-      _isLoading = false;
-    });
-  }
-
-  Widget _buildBodyContent() {
-    // Show shimmer effect while loading
-    if (_isLoading) {
-      return DoubleWhiteContainers2(
-        child: Shimmer.fromColors(
-          baseColor: Colors.grey[300]!,
-          highlightColor: Colors.grey[100]!,
-          child: Column(
-            children: [
-              Container(
-                height: 120,
-                margin: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              Gap(16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(3, (index) => 
-                  Container(
-                    height: 80,
-                    width: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-              Gap(16),
-              Container(
-                height: 40,
-                margin: EdgeInsets.symmetric(horizontal: 40),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // This will be wrapped in Obx since it uses observable variables
-    return Obx(() {
-      // Check if we have any data (either from pagination or uploads)
-      final bool hasAnyData = (mediaService.mediaItems.isNotEmpty ||
-          mediaService.uploads.isNotEmpty ||
-          mediaService.hasData.value);
-
-      return DoubleWhiteContainers2(
-        child: hasAnyData
-            ? DataBody(mediaService: mediaService)
-            : NoDataBody(mediaService: mediaService),
-      );
-    });
   }
 
   @override
@@ -240,7 +75,20 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const Gap(30),
-            _buildBodyContent(),
+            Obx(() {
+              // Check if we have any data (either from pagination or uploads)
+              final bool hasAnyData =
+                  (mediaService.mediaItems.isNotEmpty ||
+                      mediaService.uploads.isNotEmpty ||
+                      mediaService.hasData.value);
+
+              return DoubleWhiteContainers2(
+                child:
+                    hasAnyData
+                        ? DataBody(mediaService: mediaService)
+                        : NoDataBody(mediaService: mediaService),
+              );
+            }),
           ],
         ),
       ),

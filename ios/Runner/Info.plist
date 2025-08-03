@@ -2,65 +2,158 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleDisplayName</key>
-	<string>Snaplink</string>
-	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>snaplink</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-				<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.696549028830-t4qsq1qr66ms38b0oq5ife7l44epbsdr</string>
-			</array>
-		</dict>
-	</array>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs access to your photo library to select images.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>This app needs access to your camera to take photos.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>This app needs permission to save photos to your library.</string>
+ <key>CFBundleDevelopmentRegion</key>
+ <string>$(DEVELOPMENT_LANGUAGE)</string>
+ <key>CFBundleDisplayName</key>
+ <string>Snaplink</string>
+ <key>CFBundleExecutable</key>
+ <string>$(EXECUTABLE_NAME)</string>
+ <key>CFBundleIdentifier</key>
+ <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+ <key>CFBundleInfoDictionaryVersion</key>
+ <string>6.0</string>
+ <key>CFBundleName</key>
+ <string>snaplink</string>
+ <key>CFBundlePackageType</key>
+ <string>APPL</string>
+ <key>CFBundleShortVersionString</key>
+ <string>$(FLUTTER_BUILD_NAME)</string>
+ <key>CFBundleSignature</key>
+ <string>????</string>
+ <key>CFBundleVersion</key>
+ <string>$(FLUTTER_BUILD_NUMBER)</string>
+ <key>LSRequiresIPhoneOS</key>
+ <true/>
+ <key>UILaunchStoryboardName</key>
+ <string>LaunchScreen</string>
+ <key>UIMainStoryboardFile</key>
+ <string>Main</string>
+ <key>UISupportedInterfaceOrientations</key>
+ <array>
+ <string>UIInterfaceOrientationPortrait</string>
+ <string>UIInterfaceOrientationLandscapeLeft</string>
+ <string>UIInterfaceOrientationLandscapeRight</string>
+ </array>
+ <key>UISupportedInterfaceOrientations~ipad</key>
+ <array>
+ <string>UIInterfaceOrientationPortrait</string>
+ <string>UIInterfaceOrientationPortraitUpsideDown</string>
+ <string>UIInterfaceOrientationLandscapeLeft</string>
+ <string>UIInterfaceOrientationLandscapeRight</string>
+ </array>
+ <key>CADisableMinimumFrameDurationOnPhone</key>
+ <true/>
+ <key>UIApplicationSupportsIndirectInputEvents</key>
+ <true/>
+ <key>CFBundleURLTypes</key>
+ <array>
+ <dict>
+ <key>CFBundleTypeRole</key>
+ <string>Editor</string>
+ <key>CFBundleURLSchemes</key>
+ <array>
+ <string>com.googleusercontent.apps.696549028830-t4qsq1qr66ms38b0oq5ife7l44epbsdr</string>
+ <string>snaplink</string>
+ </array>
+ </dict>
+ </array>
+ 
+ <!-- Camera and Photo Library Permissions -->
+ <key>NSCameraUsageDescription</key>
+ <string>Snaplink needs access to your camera to take photos and videos for sharing.</string>
+ <key>NSPhotoLibraryUsageDescription</key>
+ <string>Snaplink needs access to your photo library to select and share images.</string>
+ <key>NSPhotoLibraryAddUsageDescription</key>
+ <string>Snaplink needs permission to save photos and videos to your library.</string>
+ 
+ <!-- Microphone Permission -->
+ <key>NSMicrophoneUsageDescription</key>
+ <string>Snaplink needs access to your microphone to record audio for videos.</string>
+ 
+ <!-- Location Permissions -->
+ <key>NSLocationWhenInUseUsageDescription</key>
+ <string>Snaplink needs location access to tag your posts with location information.</string>
+ <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+ <string>Snaplink needs location access to provide location-based features.</string>
+ <key>NSLocationAlwaysUsageDescription</key>
+ <string>Snaplink needs location access to provide location-based features even when the app is in background.</string>
+ 
+ <!-- Contacts Permission -->
+ <key>NSContactsUsageDescription</key>
+ <string>Snaplink needs access to your contacts to help you find and connect with friends.</string>
+ 
+ <!-- Motion and Fitness Permission -->
+ <key>NSMotionUsageDescription</key>
+ <string>Snaplink uses motion data to enhance your sharing experience.</string>
+ 
+ <!-- Calendar Permission -->
+ <key>NSCalendarsUsageDescription</key>
+ <string>Snaplink needs access to your calendar to create events and reminders.</string>
+ 
+ <!-- Reminders Permission -->
+ <key>NSRemindersUsageDescription</key>
+ <string>Snaplink needs access to your reminders to create and manage tasks.</string>
+ 
+ <!-- Bluetooth Permission -->
+ <key>NSBluetoothAlwaysUsageDescription</key>
+ <string>Snaplink uses Bluetooth to connect with nearby devices for sharing.</string>
+ <key>NSBluetoothPeripheralUsageDescription</key>
+ <string>Snaplink uses Bluetooth to share content with nearby devices.</string>
+ 
+ <!-- Health and HealthKit Permission -->
+ <key>NSHealthShareUsageDescription</key>
+ <string>Snaplink can share your health data with friends if you choose to.</string>
+ <key>NSHealthUpdateUsageDescription</key>
+ <string>Snaplink can update your health data based on your activities.</string>
+ 
+ <!-- Siri Permission -->
+ <key>NSSiriUsageDescription</key>
+ <string>Snaplink can integrate with Siri for voice commands and shortcuts.</string>
+ 
+ <!-- Speech Recognition Permission -->
+ <key>NSSpeechRecognitionUsageDescription</key>
+ <string>Snaplink uses speech recognition to convert your voice to text.</string>
+ 
+ <!-- Face ID / Touch ID Permission -->
+ <key>NSFaceIDUsageDescription</key>
+ <string>Snaplink uses Face ID for secure authentication and login.</string>
+ 
+ <!-- Network Usage -->
+ <key>NSLocalNetworkUsageDescription</key>
+ <string>Snaplink needs access to local network to discover and connect with nearby devices.</string>
+ 
+ <!-- User Tracking (iOS 14.5+) -->
+ <key>NSUserTrackingUsageDescription</key>
+ <string>This allows Snaplink to provide personalized content and better user experience.</string>
+ 
+ <!-- File Provider -->
+ <key>NSDocumentsFolderUsageDescription</key>
+ <string>Snaplink needs access to documents to share files.</string>
+ <key>NSDownloadsFolderUsageDescription</key>
+ <string>Snaplink needs access to downloads folder to access downloaded files.</string>
+ 
+ <!-- Deep Link Support -->
+ <key>CFBundleURLName</key>
+ <string>snaplink.deeplink</string>
+ 
+ <!-- Background Modes -->
+ <key>UIBackgroundModes</key>
+ <array>
+ <string>background-processing</string>
+ <string>background-fetch</string>
+ <string>remote-notification</string>
+ </array>
+ 
+ <!-- App Transport Security -->
+ <key>NSAppTransportSecurity</key>
+ <dict>
+ <key>NSAllowsArbitraryLoads</key>
+ <true/>
+ </dict>
+ 
+ <!-- Firebase/FCM for Push Notifications -->
+ <key>FirebaseAppDelegateProxyEnabled</key>
+ <false/>
+ 
 </dict>
 </plist>

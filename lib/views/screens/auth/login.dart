@@ -1,3 +1,5 @@
+
+
 // ignore_for_file: prefer_const_constructors
 
 import 'package:bounce/bounce.dart';
@@ -8,6 +10,7 @@ import 'package:snaplink/constants/app_background.dart';
 import 'package:snaplink/constants/app_colors.dart';
 import 'package:snaplink/controller/auth_service.dart';
 import 'package:snaplink/controller/auth_validtions.dart';
+import 'package:snaplink/controller/connection_check.dart';
 import 'package:snaplink/generated/assets.dart';
 import 'package:snaplink/views/screens/auth/forgot_password.dart';
 import 'package:snaplink/views/screens/auth/signup.dart';
@@ -39,59 +42,117 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _passwordError;
   final authService = AuthService();
   bool _isPasswordObscured = true; // Toggle for password visibility
+  bool _isLoading = false; // Loading state for Sign In button
+  bool _isGoogleLoading = false; // Loading state for Google Sign In button
 
-  void login() async {
+ 
+
+void login() async {
+  // Check internet connection first
+  if (!await ConnectionCheck.isInternetAvailable()) {
+    ConnectionCheck.showNoInternetDialog(context, "to sign in");
+    return;
+  }
+
+  // Prevent multiple clicks
+  if (_isLoading) return;
+
+  setState(() {
+    _emailError = null;
+    _passwordError = null;
+    _isLoading = true; // Start loading
+  });
+
+  final email = _emailController.text.trim();
+  final password = _passwordController.text.trim();
+
+  if (email.isEmpty && password.isEmpty) {
     setState(() {
-      _emailError = null;
-      _passwordError = null;
+      _emailError = 'Please enter the email';
+      _passwordError = 'Please enter the password';
+      _isLoading = false; // Stop loading
     });
+    _formKey.currentState?.validate();
+    return;
+  } else if (email.isEmpty) {
+    setState(() {
+      _emailError = 'Please enter the email';
+      _isLoading = false; // Stop loading
+    });
+    _formKey.currentState?.validate();
+    return;
+  } else if (password.isEmpty) {
+    setState(() {
+      _passwordError = 'Please enter the password';
+      _isLoading = false; // Stop loading
+    });
+    _formKey.currentState?.validate();
+    return;
+  }
 
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+  final isValid = _formKey.currentState?.validate() ?? false;
+  if (!isValid) {
+    setState(() {
+      _isLoading = false; // Stop loading
+    });
+    return;
+  }
 
-    if (email.isEmpty && password.isEmpty) {
-      setState(() {
-        _emailError = 'Please enter the email';
-        _passwordError = 'Please enter the password';
-      });
-      _formKey.currentState?.validate();
-      return;
-    } else if (email.isEmpty) {
-      setState(() {
-        _emailError = 'Please enter the email';
-      });
-      _formKey.currentState?.validate();
-      return;
-    } else if (password.isEmpty) {
-      setState(() {
-        _passwordError = 'Please enter the password';
-      });
-      _formKey.currentState?.validate();
-      return;
+  try {
+    await _authService.signInWithEmail(email, password);
+    if (mounted) {
+      Get.offAll(() => HomeScreen());
+      NotificationService.showNotification(body: 'Signed in successfully');
     }
-
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) return;
-
-    try {
-      await _authService.signInWithEmail(email, password);
-      if (mounted) {
-        Get.offAll(() => HomeScreen());
-        NotificationService.showNotification(body: 'Signed in successfully');
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _emailError = 'Incorrect email';
-          _passwordError = 'Incorrect password';
-        });
-        _formKey.currentState?.validate();
-        NotificationService.showNotification(
-          body: 'Incorrect email or password',
-        );
-      }
+  } catch (e) {
+    if (mounted) {
+      setState(() {
+        _emailError = 'Incorrect email';
+        _passwordError = 'Incorrect password';
+        _isLoading = false; // Stop loading
+      });
+      _formKey.currentState?.validate();
+      NotificationService.showNotification(
+        body: 'Incorrect email or password',
+      );
     }
   }
+}
+
+void googleSignIn() async {
+  // Check internet connection first
+  if (!await ConnectionCheck.isInternetAvailable()) {
+    ConnectionCheck.showNoInternetDialog(context, "to sign in");
+    return;
+  }
+
+  // Prevent multiple clicks
+  if (_isGoogleLoading) return;
+
+  setState(() {
+    _isGoogleLoading = true; // Start loading
+  });
+
+  try {
+    final response = await authService.googleSignIn();
+    if (response.user != null) {
+      Get.offAll(() => HomeScreen());
+      NotificationService.showNotification(
+        body: 'Signed in successfully',
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      setState(() {
+        _isGoogleLoading = false; // Stop loading
+      });
+      NotificationService.showNotification(
+        body: e.toString(),
+      );
+    }
+  }
+}
+
 
   @override
   void dispose() {
@@ -186,7 +247,28 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                     ),
-                    MyGradientButton(onTap: login, buttonText: "Sign In"),
+                    // Modified Sign In Button with Loading State
+                    _isLoading
+                        ? Container(
+                            height: 50, // Match your button height
+                            width: double.infinity,
+                            margin: EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Colors.blue, Colors.purple], // Use your gradient colors
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          )
+                        : MyGradientButton(onTap: login, buttonText: "Sign In"),
                     MyText(
                       text: "Forgot Your Password?",
                       color: kSubText,
@@ -202,7 +284,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         MyText(
-                          text: "Doesn’t have an account ?",
+                          text: "Doesn't have an account ?",
                           color: kSubText,
                           size: 14,
                           weight: FontWeight.w400,
@@ -231,7 +313,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         MyText(
-                          text: 'or signup with',
+                          text: 'or sign in with',
                           size: 14,
                           letterSpacing: 0.5,
                           weight: FontWeight.w400,
@@ -249,25 +331,29 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                     const Gap(16),
-                    AuthButtons(
-                      onTap: () async {
-                        try {
-                          final response = await authService.googleSignIn();
-                          if (response.user != null) {
-                            Get.offAll(() => HomeScreen());
-                            NotificationService.showNotification(
-                              body: 'Signed in successfully',
-                            );
-                          }
-                        } catch (e) {
-                          NotificationService.showNotification(
-                            body: e.toString(),
-                          );
-                        }
-                      },
-                      img: Assets.imagesGoogle,
-                      text: "Continue with Google",
-                    ),
+                    // Modified Google Sign In Button with Loading State
+                    _isGoogleLoading
+                        ? Container(
+                            height: 50, // Match your AuthButtons height
+                            width: double.infinity,
+                            margin: EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          )
+                        : AuthButtons(
+                            onTap: googleSignIn,
+                            img: Assets.imagesGoogle,
+                            text: "Continue with Google",
+                          ),
                   ],
                 ),
               ),

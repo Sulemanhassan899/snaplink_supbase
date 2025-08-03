@@ -423,10 +423,15 @@ class MediaService extends GetxController {
   }
 
   //fetchUserMedia method with proper first-page logic
+
   Future<void> fetchUserMedia({required int page}) async {
     try {
       if (page == 1) {
         isLoading.value = true;
+
+        // [FIXED] Properly reset paging state on first page load
+        pagingController.itemList = [];
+        pagingController.nextPageKey = null;
       }
 
       final user = _supabase.auth.currentUser;
@@ -446,7 +451,6 @@ class MediaService extends GetxController {
 
       final String userId = user.id;
 
-      // Fetch total count
       if (totalItems.value == 0 || page == 1) {
         final countResponse =
             await _supabase
@@ -469,15 +473,10 @@ class MediaService extends GetxController {
         response as List,
       );
 
-      // --- CHANGED: Always set mediaItems & uploads for first page
       if (page == 1) {
         mediaItems.value = newItems;
         uploads.clear();
-        if (newItems.isNotEmpty) {
-          // uploads.addAll(newItems);
-        }
       } else {
-        // Additional pages - add new items without duplicates
         for (final newItem in newItems) {
           final alreadyExists = mediaItems.any(
             (item) => item.url == newItem.url,
@@ -503,7 +502,7 @@ class MediaService extends GetxController {
       isLoading.value = false;
     } catch (e) {
       isLoading.value = false;
-      print('Error fetching media: $e');
+      print('Error fetching media: \$e');
       pagingController.error = e;
     }
   }

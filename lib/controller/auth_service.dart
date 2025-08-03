@@ -106,6 +106,50 @@ class AuthService {
     }
   }
 
+
+
+// Updated forgot password function to send OTP
+  Future<void> forgotPassword(String email) async {
+    try {
+      await _supabase.auth.resetPasswordForEmail(
+        email,
+        // Remove redirectTo for OTP verification
+      );
+      await _showNotification(
+        'Password Reset',
+        'Password reset OTP sent to your email.',
+      );
+    } catch (e) {
+      throw Exception('Failed to send reset password email: ${e.toString()}');
+    }
+  }
+
+  // Verify OTP for password reset
+  Future<void> verifyResetWithOTP(String email, String otp) async {
+    try {
+      final AuthResponse response = await _supabase.auth.verifyOTP(
+        email: email,
+        token: otp,
+        type: OtpType.recovery,
+      );
+      if (response.user == null) {
+        throw Exception('Invalid OTP or verification failed');
+      }
+    } catch (e) {
+      throw Exception('Failed to verify OTP: ${e.toString()}');
+    }
+  }
+
+  // Reset password with OTP
+  Future<void> resetPasswordWithOTP(String newPassword) async {
+    try {
+      await _supabase.auth.updateUser(UserAttributes(password: newPassword));
+    } catch (e) {
+      throw Exception('Failed to reset password: ${e.toString()}');
+    }
+  }
+
+
   Future<void> configDeeplink() async {
     final appLinks = AppLinks();
 
@@ -121,13 +165,7 @@ class AuthService {
     });
   }
 
-  Future<void> resetPassword(String NewPassword) async {
-    try {
-      await _supabase.auth.updateUser(UserAttributes(password: NewPassword));
-    } catch (e) {
-      throw Exception('Failed to reset password : ${e.toString()}');
-    }
-  }
+ 
 
   Future<AuthResponse> googleSignIn() async {
     const webClientId =
@@ -159,22 +197,4 @@ class AuthService {
     );
   }
 
-  //list  functions
-
-  //uplaoding functions
-
-  //image compressing functions
-
-  //image compressing functions
 }
-
-
-
-
-
-    // MyText(
-    //                 text: getCurrentUserEmail.toString(),
-    //                 size: 14,
-    //                 textAlign: TextAlign.center,
-    //                 weight: FontWeight.w400,
-    //               ),

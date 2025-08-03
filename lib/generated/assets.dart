@@ -142,6 +142,10 @@ class Assets {
   /// assets/images/logowithname.png
   static const String imagesLogowithname = "assets/images/logowithname.png";
 
+  /// Assets for imagesNoInternet
+  /// assets/images/NoInternet.png
+  static const String imagesNoInternet = "assets/images/NoInternet.png";
+
   /// Assets for imagesNoimages
   /// assets/images/noimages.png
   static const String imagesNoimages = "assets/images/noimages.png";

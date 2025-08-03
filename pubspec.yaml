@@ -39,7 +39,7 @@ dependencies:
   share_plus: 
   shimmer: 3.0.0
   video_player: ^2.8.1
-  
+  pinput: 
 
 dev_dependencies:
   flutter_test:

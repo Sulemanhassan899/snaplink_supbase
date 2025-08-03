@@ -1,4 +1,4 @@
-// // ignore_for_file: prefer_const_constructors
+
 // ignore_for_file: prefer_const_constructors
 
 import 'package:bounce/bounce.dart';
@@ -9,6 +9,7 @@ import 'package:snaplink/constants/app_background.dart';
 import 'package:snaplink/constants/app_colors.dart';
 import 'package:snaplink/controller/auth_service.dart';
 import 'package:snaplink/controller/auth_validtions.dart';
+import 'package:snaplink/controller/connection_check.dart';
 import 'package:snaplink/generated/assets.dart';
 import 'package:snaplink/views/screens/auth/login.dart';
 import 'package:snaplink/views/screens/home/home.dart';
@@ -41,56 +42,115 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final authService = AuthService();
   bool _isPasswordObscured = true;
   bool _isConfrimPasswordObscured = true;
+  bool _isLoading = false; // Loading state for Sign Up button
+  bool _isGoogleLoading = false; // Loading state for Google Sign Up button
 
- 
-  void signup() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
-    final fullName = _fullnameController.text.trim();
+void signup() async {
+  // Check internet connection first
+  if (!await ConnectionCheck.isInternetAvailable()) {
+    ConnectionCheck.showNoInternetDialog(context, "to sign up");
+    return;
+  }
 
-    if (email.isEmpty && password.isEmpty && confirmPassword.isEmpty) {
-      setState(() {});
-      _formKey.currentState?.validate();
-      return;
-    } else if (email.isEmpty) {
-      setState(() {});
-      _formKey.currentState?.validate();
-      return;
-    } else if (password.isEmpty) {
-      setState(() {});
-      _formKey.currentState?.validate();
-      return;
-    } else if (confirmPassword.isEmpty) {
-      setState(() {});
-      _formKey.currentState?.validate();
-      return;
+  // Prevent multiple clicks
+  if (_isLoading) return;
+
+  setState(() {
+    _isLoading = true; // Start loading
+  });
+
+  final email = _emailController.text.trim();
+  final password = _passwordController.text.trim();
+  final confirmPassword = _confirmPasswordController.text.trim();
+  final fullName = _fullnameController.text.trim();
+
+  if (email.isEmpty && password.isEmpty && confirmPassword.isEmpty) {
+    setState(() {
+      _isLoading = false; // Stop loading
+    });
+    _formKey.currentState?.validate();
+    return;
+  } else if (email.isEmpty) {
+    setState(() {
+      _isLoading = false; // Stop loading
+    });
+    _formKey.currentState?.validate();
+    return;
+  } else if (password.isEmpty) {
+    setState(() {
+      _isLoading = false; // Stop loading
+    });
+    _formKey.currentState?.validate();
+    return;
+  } else if (confirmPassword.isEmpty) {
+    setState(() {
+      _isLoading = false; // Stop loading
+    });
+    _formKey.currentState?.validate();
+    return;
+  }
+
+  final isValid = _formKey.currentState?.validate() ?? false;
+  if (!isValid) {
+    setState(() {
+      _isLoading = false; // Stop loading
+    });
+    return;
+  }
+
+  if (password != confirmPassword) {
+    setState(() {
+      _isLoading = false; // Stop loading
+    });
+    _formKey.currentState?.validate();
+    return;
+  }
+
+  try {
+    final user = await _authService.signUpWithEmail(email, password);
+    if (user != null) {
+      await _authService.updateUserName(fullName);
     }
-
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid) return;
-
-    if (password != confirmPassword) {
-      setState(() {});
-      _formKey.currentState?.validate();
-      return;
+    if (mounted) {
+      Get.offAll(() => HomeScreen());
     }
-
-    try {
-      final user = await _authService.signUpWithEmail(email, password);
-      if (user != null) {
-        await _authService.updateUserName(fullName);
-      }
-      if (mounted) {
-        Get.offAll(() => HomeScreen());
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {});
-        _formKey.currentState?.validate();
-      }
+  } catch (e) {
+    if (mounted) {
+      setState(() {
+        _isLoading = false; // Stop loading
+      });
+      _formKey.currentState?.validate();
     }
   }
+}
+
+void googleSignUp() async {
+  // Check internet connection first
+  if (!await ConnectionCheck.isInternetAvailable()) {
+    ConnectionCheck.showNoInternetDialog(context, "to sign up");
+    return;
+  }
+
+  // Prevent multiple clicks
+  if (_isGoogleLoading) return;
+
+  setState(() {
+    _isGoogleLoading = true; // Start loading
+  });
+
+  try {
+    final response = await authService.googleSignIn();
+    if (response.user != null) {
+      Get.offAll(() => HomeScreen());
+    }
+  } catch (e) {
+    if (mounted) {
+      setState(() {
+        _isGoogleLoading = false; // Stop loading
+      });
+    }
+  }
+}
 
   @override
   void dispose() {
@@ -259,10 +319,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             },
                             focusNode: _focusNodeConfrimPassword,
                           ),
-                          MyGradientButton(
-                            onTap: signup,
-                            buttonText: "Sign Up",
-                          ),
+                          // Modified Sign Up Button with Loading State
+                          _isLoading
+                              ? Container(
+                                  height: 50, // Match your button height
+                                  width: double.infinity,
+                                  margin: EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [Colors.blue, Colors.purple], // Use your gradient colors
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                )
+                              : MyGradientButton(
+                                  onTap: signup,
+                                  buttonText: "Sign Up",
+                                ),
                           Gap(24),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -297,7 +378,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 ),
                               ),
                               MyText(
-                                text: 'or signup with',
+                                text: 'or sign up with',
                                 size: 14,
                                 letterSpacing: 0.5,
                                 weight: FontWeight.w400,
@@ -316,20 +397,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
 
                           const Gap(16),
-                          AuthButtons(
-                            onTap: () async {
-                              try {
-                                final response =
-                                    await authService.googleSignIn();
-                                if (response.user != null) {
-                                  Get.offAll(() => HomeScreen());
-                                }
-                              } catch (e) {
-                              }
-                            },
-                            img: Assets.imagesGoogle,
-                            text: "Continue with Google",
-                          ),
+                          // Modified Google Sign Up Button with Loading State
+                          _isGoogleLoading
+                              ? Container(
+                                  height: 50, // Match your AuthButtons height
+                                  width: double.infinity,
+                                  margin: EdgeInsets.symmetric(vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.grey.shade300),
+                                  ),
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                )
+                              : AuthButtons(
+                                  onTap: googleSignUp,
+                                  img: Assets.imagesGoogle,
+                                  text: "Continue with Google",
+                                ),
                         ],
                       ),
                     ),
