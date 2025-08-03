@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:gap/gap.dart';
 import 'package:lottie/lottie.dart';
 import 'package:bounce/bounce.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:snaplink/constants/app_colors.dart';
 import 'package:snaplink/controller/model_classs.dart';
 import 'package:snaplink/generated/assets.dart';
@@ -96,7 +97,7 @@ class UploadBottomSheets {
     );
   }
 
-  static void showPreviewBottomSheet(
+  static void showPreviewBottomSheet1(
     BuildContext context, {
     required Rx<Function?> cancelUploadCallback,
     required MediaItem mediaItem, // Add this parameter
@@ -302,6 +303,203 @@ class UploadBottomSheets {
       ),
     );
   }
+
+
+// ✅ FIXED: Share button working — properly passes `text` argument to Share.share()
+
+static void showPreviewBottomSheet(
+  BuildContext context, {
+  required Rx<Function?> cancelUploadCallback,
+  required MediaItem mediaItem,
+}) {
+  Get.bottomSheet(
+    isDismissible: true,
+    isScrollControlled: true,
+    SizedBox(
+      height: Get.height - 100,
+      child: DoubleWhiteContainers2(
+        child: AnimatedColumn(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Bounce(
+                  onTap: () {
+                    Get.back();
+                  },
+                  child: CommonImageView(
+                    imagePath: Assets.imagesCancel,
+                    height: 24,
+                  ),
+                ),
+                Gap(20),
+              ],
+            ),
+            Builder(
+              builder: (context) {
+                final selectedItem = mediaItem;
+                final urlController = TextEditingController(
+                  text: selectedItem.url,
+                );
+
+                return Column(
+                  children: [
+                    Container(
+                      height: 250,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.black12,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: selectedItem.isVideo == true
+                            ? _buildVideoPlayer(selectedItem.url)
+                            : CommonImageView(
+                                radius: 12,
+                                url: selectedItem.url,
+                                height: 250,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                      ),
+                    ),
+                    const Gap(12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            MyText(
+                              text: "Uploaded on: ",
+                              size: 12,
+                              color: kSubText,
+                            ),
+                            MyText(
+                              text: selectedItem.uploadDate ?? "-",
+                              size: 12,
+                              weight: FontWeight.w600,
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Icon(
+                              selectedItem.isVideo == true
+                                  ? Icons.videocam
+                                  : Icons.image,
+                              size: 12,
+                              color: kSubText,
+                            ),
+                            Gap(4),
+                            MyText(
+                              text: selectedItem.fileSize ?? "-",
+                              size: 12,
+                              color: kSubText,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const Gap(20),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: MyText(
+                        text: "Link",
+                        size: 16,
+                        weight: FontWeight.w600,
+                      ),
+                    ),
+                    const Gap(10),
+                    MyTextField(
+                      controller: urlController,
+                      isReadOnly: true,
+                      radius: 12,
+                      filledColor: const Color(0xffF0F7FF),
+                      bordercolor: const Color(0xffD2E6FF),
+                    ),
+                    const Gap(20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: MyBorderButton(
+                            onTap: () {
+                              try {
+                                final mediaService = Get.find<MediaService>();
+                                mediaService.copyUrlToClipboard(
+                                  selectedItem.url,
+                                );
+                                Get.snackbar(
+                                  'Success',
+                                  'URL copied to clipboard!',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.green,
+                                  colorText: Colors.white,
+                                  duration: Duration(seconds: 2),
+                                );
+                              } catch (e) {
+                                Clipboard.setData(
+                                  ClipboardData(text: selectedItem.url),
+                                );
+                                Get.snackbar(
+                                  'Success',
+                                  'URL copied to clipboard!',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.green,
+                                  colorText: Colors.white,
+                                  duration: Duration(seconds: 2),
+                                );
+                              }
+                            },
+                            buttonText: "Copy URL",
+                            hasicon: true,
+                            choiceIcon: Assets.imagesCopy,
+                            fontColor: kBlack,
+                            outlineColor: kBorderColor,
+                          ),
+                        ),
+                        const Gap(10),
+                        Expanded(
+                          child: MyGradientButton(
+                            onTap: () async {
+                              try {
+                                await Share.share(
+                                  selectedItem.url,
+                                  subject: "Check out this media",
+                                );
+                              } catch (e) {
+                                print('Share error: \${e.toString()}');
+                                Get.snackbar(
+                                  'Error',
+                                  'Failed to share URL: \${e.toString()}',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                  duration: Duration(seconds: 3),
+                                );
+                              }
+                            },
+                            buttonText: "Share",
+                            hasicon: true,
+                            choiceIcon: Assets.imagesShare,
+                            fontColor: kWhite,
+                            backgroundColor: kPrimaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
+            Gap(30),
+          ],
+        ),
+      ),
+    ),
+  );
+}
 
   static Widget _buildVideoPlayer(String videoUrl) {
     return Container(

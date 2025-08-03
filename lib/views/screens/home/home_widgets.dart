@@ -107,7 +107,7 @@ class PaginatedMediaList extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: MyText(
-                  text: "No images",
+                  text: " ",
                   size: 16,
                   textAlign: TextAlign.center,
                   weight: FontWeight.w500,
