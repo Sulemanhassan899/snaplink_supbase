@@ -1,4 +1,4 @@
-package com.example.snaplink
+package com.snaplink.snap
 
 import io.flutter.embedding.android.FlutterActivity
 
